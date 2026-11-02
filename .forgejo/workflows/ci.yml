@@ -33,11 +33,15 @@ jobs:
       - name: Install Semgrep
         run: |
           apt-get update -qq
-          apt-get install -y python3-pip
-          python3 -m pip install --break-system-packages semgrep
+          apt-get install -y python3-pip python3-venv
+          python3 -m venv "$RUNNER_TEMP/semgrep-venv"
+          "$RUNNER_TEMP/semgrep-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/semgrep-venv/bin/python" -m pip install --ignore-installed semgrep
 
       - name: Check architecture boundaries
-        run: just semgrep
+        run: |
+          export PATH="$RUNNER_TEMP/semgrep-venv/bin:$PATH"
+          just semgrep
 
 
   validate:
