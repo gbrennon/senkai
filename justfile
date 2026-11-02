@@ -44,6 +44,9 @@ fmt-check:
 lint:
     cargo clippy -- -D warnings
 
+
+semgrep:
+    semgrep --error --config .semgrep/architecture.yml src
 # lint fixes (optionally specify files)
 lint-fix +FILES='':
     cargo clippy --fix --allow-dirty --allow-staged {{FILES}}

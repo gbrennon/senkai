@@ -30,6 +30,19 @@ jobs:
 
       - name: Lint
         run: just lint
+      - name: Install Semgrep
+        run: |
+          apt-get update -qq
+          apt-get install -y python3-pip python3-venv
+          python3 -m venv "$RUNNER_TEMP/semgrep-venv"
+          "$RUNNER_TEMP/semgrep-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/semgrep-venv/bin/python" -m pip install --ignore-installed semgrep
+
+      - name: Check architecture boundaries
+        run: |
+          export PATH="$RUNNER_TEMP/semgrep-venv/bin:$PATH"
+          just semgrep
+
 
   validate:
     runs-on: codeberg-tiny
