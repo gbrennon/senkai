@@ -1,0 +1,52 @@
+rules:
+  - id: rust-core-no-external-dependencies
+    languages:
+      - rust
+    message: "Core layer must depend only on the standard library and crate-internal modules"
+    severity: ERROR
+    paths:
+      include:
+        - "/src/core/**"
+    pattern-either:
+      - patterns:
+          - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+(?!(?:std|core|alloc|crate|self|super)(?:\s*::|\s*\{|\s*;))'
+          - pattern-not-inside: |
+              mod tests {
+                ...
+              }
+      - patterns:
+          - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?extern\s+crate\s+(?!std\b|core\b|alloc\b)'
+          - pattern-not-inside: |
+              mod tests {
+                ...
+              }
+
+  - id: rust-core-no-infrastructure-dependencies
+    languages:
+      - rust
+    message: "Core layer must not depend on infrastructure"
+    severity: ERROR
+    paths:
+      include:
+        - "/src/core/**"
+    patterns:
+      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees)::infrastructure\b'
+      - pattern-not-inside: |
+          mod tests {
+            ...
+          }
+
+  - id: rust-core-no-presentation-dependencies
+    languages:
+      - rust
+    message: "Core layer must not depend on presentation"
+    severity: ERROR
+    paths:
+      include:
+        - "/src/core/**"
+    patterns:
+      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees)::presentation\b'
+      - pattern-not-inside: |
+          mod tests {
+            ...
+          }
