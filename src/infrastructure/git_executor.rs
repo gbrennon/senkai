@@ -8,7 +8,7 @@ use super::command_runner::{CommandRunner, SystemCommandRunner};
 /// Thin adapter around `git` commands — every call is forwarded through the
 /// injected [`CommandRunner`] so tests can supply a fake.
 pub struct GitExecutor {
-    runner: Box<dyn CommandRunner>,
+    pub runner: Box<dyn CommandRunner>,
 }
 
 impl Default for GitExecutor {
@@ -20,11 +20,6 @@ impl Default for GitExecutor {
 }
 
 impl GitExecutor {
-    #[allow(dead_code)]
-    pub fn with_runner(runner: Box<dyn CommandRunner>) -> Self {
-        Self { runner }
-    }
-
     pub fn run_in(&self, cwd: &Path, args: &[&str]) -> Result<(i32, String, String)> {
         let out = self.runner.run("git", args, Some(cwd)).map_err(|e| {
             crate::core::error::Error::new(format!("Failed to run git command: {}", e))
