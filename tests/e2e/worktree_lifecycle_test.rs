@@ -10,7 +10,8 @@ use super::common::fakes::git::*;
 use super::common::fakes::loading::*;
 use super::common::fakes::selector::*;
 use super::common::fakes::tmux::*;
-use tmux_worktrees::core::ports::{GitPort, TmuxPort};
+use tmux_worktrees::core::ports::repository_port::RepositoryPort;
+use tmux_worktrees::core::ports::tmux_port::TmuxPort;
 use tmux_worktrees::presentation::loading_port::LoadingRunner;
 use tmux_worktrees::presentation::selector_port::SelectorRunner;
 
@@ -18,7 +19,7 @@ static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 fn cli_with(
     tmux: impl TmuxPort + 'static,
-    git: impl GitPort + 'static,
+    git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
     loading: impl LoadingRunner + 'static,
 ) -> Cli {
