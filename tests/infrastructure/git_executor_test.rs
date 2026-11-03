@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::path::Path;
 use std::rc::Rc;
 use tmux_worktrees::core::error::Result;
+use tmux_worktrees::infrastructure::command_runner::CommandRunner;
 
 struct FakeGitExecutorForVersion;
 
@@ -262,9 +263,10 @@ mod tests {
 use super::common::fakes::command_runner::FakeRunner;
 use tmux_worktrees::infrastructure::git_executor::GitExecutor;
 
-/// Helper: build a `GitExecutor` backed by the given `FakeRunner`.
-fn executor_with(runner: FakeRunner) -> GitExecutor {
-    GitExecutor::with_runner(Box::new(runner))
+fn executor_with(runner: impl CommandRunner + 'static) -> GitExecutor {
+    GitExecutor {
+        runner: Box::new(runner),
+    }
 }
 
 #[test]
