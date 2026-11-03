@@ -4,7 +4,8 @@ use super::common::fakes::git::*;
 use super::common::fakes::loading::*;
 use super::common::fakes::selector::*;
 use super::common::fakes::tmux::*;
-use tmux_worktrees::core::ports::{GitPort, TmuxPort};
+use tmux_worktrees::core::ports::repository_port::RepositoryPort;
+use tmux_worktrees::core::ports::tmux_port::TmuxPort;
 use tmux_worktrees::core::selector::SelectionResult;
 use tmux_worktrees::presentation::cli::Cli;
 use tmux_worktrees::presentation::command::Command;
@@ -13,7 +14,7 @@ use tmux_worktrees::presentation::selector_port::SelectorRunner;
 
 fn cli_with(
     tmux: impl TmuxPort + 'static,
-    git: impl GitPort + 'static,
+    git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
 ) -> Cli {
     cli_with_loading(tmux, git, selector, FakeLoading::new())
@@ -21,7 +22,7 @@ fn cli_with(
 
 fn cli_with_loading(
     tmux: impl TmuxPort + 'static,
-    git: impl GitPort + 'static,
+    git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
     loading: impl LoadingRunner + 'static,
 ) -> Cli {
@@ -33,7 +34,7 @@ fn cli_with_loading(
     )
 }
 
-fn cli_default(tmux: impl TmuxPort + 'static, git: impl GitPort + 'static) -> Cli {
+fn cli_default(tmux: impl TmuxPort + 'static, git: impl RepositoryPort + 'static) -> Cli {
     cli_with(tmux, git, StubSelector)
 }
 
