@@ -3,7 +3,8 @@ use std::process::Command;
 use std::sync::{LazyLock, Mutex};
 
 use tempfile::TempDir;
-use tmux_worktrees::core::ports::{GitPort, TmuxPort};
+use tmux_worktrees::core::ports::repository_port::RepositoryPort;
+use tmux_worktrees::core::ports::tmux_port::TmuxPort;
 use tmux_worktrees::core::selector::SelectionResult;
 use tmux_worktrees::infrastructure::git_executor::GitExecutor;
 use tmux_worktrees::presentation::cli::Cli;
@@ -18,7 +19,7 @@ static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 fn cli_with(
     tmux: impl TmuxPort + 'static,
-    git: impl GitPort + 'static,
+    git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
     loading: impl LoadingRunner + 'static,
 ) -> Cli {
