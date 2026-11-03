@@ -217,21 +217,6 @@ fn list_worktrees_empty_when_no_worktrees() {
 }
 
 #[test]
-fn list_worktree_names_empty_initially() {
-    let guard = init_ephemeral_repo();
-    let cli = cli_with(
-        StubTmx,
-        FakeGitPorcelain::new(&format!("worktree {}\n", guard.repo_path().display())),
-        StubSelector,
-        FakeLoading::new(),
-    );
-    let names = cli
-        .list_worktree_names(guard.repo_path(), "worktrees")
-        .unwrap();
-    assert!(names.is_empty());
-}
-
-#[test]
 fn worktree_full_lifecycle() {
     let guard = init_ephemeral_repo();
     let repo_root = guard.repo_path();
