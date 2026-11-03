@@ -1,7 +1,7 @@
 use crate::core::error::Result;
 use std::path::Path;
 
-use crate::core::ports::GitPort;
+use crate::core::ports::repository_port::RepositoryPort;
 
 use super::command_runner::{CommandRunner, SystemCommandRunner};
 
@@ -42,7 +42,7 @@ impl GitExecutor {
     }
 }
 
-impl GitPort for GitExecutor {
+impl RepositoryPort for GitExecutor {
     fn run_in(&self, dir: &Path, args: &[&str]) -> Result<(i32, String, String)> {
         self.run_in(dir, args)
     }

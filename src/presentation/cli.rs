@@ -7,31 +7,31 @@ use std::path::Path;
 use super::command::Command;
 use crate::core::{
     merge_checker::MergeChecker,
-    ports::{GitPort, TmuxPort},
+    ports::{repository_port::RepositoryPort, tmux_port::TmuxPort},
     project_locator::ProjectLocator,
     selector::{SelectionResult, Selector},
     worktree_resolver::WorktreeResolver,
 };
 
-/// Presentation-layer CLI — owns the tmux, git, selector and loading adapters
+/// Presentation-layer CLI — owns terminal, repository, selector and loading adapters
 /// and exposes one method per user-facing command.
 pub struct Cli {
-    tmux: Box<dyn TmuxPort>,
-    git: Box<dyn GitPort>,
+    terminal: Box<dyn TmuxPort>,
+    repository: Box<dyn RepositoryPort>,
     selector: Box<dyn SelectorRunner>,
     loading: Box<dyn LoadingRunner>,
 }
 
 impl Cli {
     pub fn new(
-        tmux: Box<dyn TmuxPort>,
-        git: Box<dyn GitPort>,
+        terminal: Box<dyn TmuxPort>,
+        repository: Box<dyn RepositoryPort>,
         selector: Box<dyn SelectorRunner>,
         loading: Box<dyn LoadingRunner>,
     ) -> Self {
         Self {
-            tmux,
-            git,
+            terminal,
+            repository,
             selector,
             loading,
         }
@@ -48,7 +48,7 @@ impl Cli {
         };
 
         if let Err(e) = result {
-            let _ = self.tmux.show_error(&format!("{e:#}"));
+            let _ = self.terminal.show_error(&format!("{e:#}"));
         }
     }
 
@@ -94,7 +94,7 @@ impl Cli {
         let root = match self.find_repo_root() {
             Ok(r) => r,
             Err(e) => {
-                self.tmux.show_error(&format!("{e:#}"))?;
+                self.terminal.show_error(&format!("{e:#}"))?;
                 return Ok(());
             }
         };
@@ -113,7 +113,7 @@ impl Cli {
         }
         cmd.push_str(" --root=");
         cmd.push_str(&crate::utils::ShellQuoter::quote(&root));
-        let _ = self.tmux.display_popup("60%", "50%", &root, &cmd);
+        let _ = self.terminal.display_popup("60%", "50%", &root, &cmd);
         Ok(())
     }
 
@@ -123,7 +123,7 @@ impl Cli {
         })?;
         let repo_root_path = Path::new(&repo_root);
         std::env::set_current_dir(repo_root_path)?;
-        let worktree_dir = self.tmux.resolve_worktree_dir();
+        let worktree_dir = self.terminal.resolve_worktree_dir();
         let worktrees = self.list_worktrees(repo_root_path, &worktree_dir)?;
         let mut existing: Vec<_> = worktrees
             .into_iter()
@@ -163,7 +163,7 @@ impl Cli {
 
     pub fn run_create(&self, branch: &str) -> Result<()> {
         if branch.trim().is_empty() {
-            self.tmux.show_error(
+            self.terminal.show_error(
                 "Branch name cannot be empty — type a name (e.g. feat/foo) or select an existing worktree",
             )?;
             return Ok(());
@@ -173,14 +173,14 @@ impl Cli {
         })?;
         let repo_root_path = Path::new(&repo_root);
         std::env::set_current_dir(repo_root_path)?;
-        let worktree_dir = self.tmux.resolve_worktree_dir();
+        let worktree_dir = self.terminal.resolve_worktree_dir();
         let project_locator = ProjectLocator;
         project_locator.ensure_worktree_directory(repo_root_path, &worktree_dir)?;
         let target = WorktreeResolver.resolve_path(repo_root_path, &worktree_dir, branch);
         if !target.is_dir() {
             let default_branch = self.resolve_default_branch(repo_root_path)?;
             if let Err(e) = self.create_worktree(repo_root_path, &target, branch, &default_branch) {
-                self.tmux
+                self.terminal
                     .show_error(&format!("Worktree creation failed:\n\n{e:#}"))?;
                 return Ok(());
             }
@@ -190,8 +190,8 @@ impl Cli {
 
     fn open_worktree_window(&self, branch: &str, target: &Path) -> Result<()> {
         let target_abs = WorktreeResolver.resolve_absolute(target);
-        let command = self.tmux.resolve_shell_command();
-        self.tmux
+        let command = self.terminal.resolve_shell_command();
+        self.terminal
             .select_or_create_window(branch, &target_abs, &command)?;
         Ok(())
     }
@@ -202,24 +202,25 @@ impl Cli {
         })?;
         let repo_root_path = Path::new(&repo_root);
         std::env::set_current_dir(repo_root_path)?;
-        let worktree_dir = self.tmux.resolve_worktree_dir();
+        let worktree_dir = self.terminal.resolve_worktree_dir();
         let default_branch = self.resolve_default_branch(repo_root_path)?;
         let auto_fetch = self
-            .tmux
+            .terminal
             .get_option("worktree-auto-fetch")
             .unwrap_or_else(|| "true".to_string());
         if auto_fetch != "false" {
-            let git = &self.git;
+            let repository = &self.repository;
             let loading = &self.loading;
             let fetch_branch = default_branch.clone();
             let _ = loading.run_loading(
                 "Fetching default branch…",
                 Box::new(move || {
-                    git.run_in(
-                        repo_root_path,
-                        &["fetch", "origin", &fetch_branch, "--no-tags"],
-                    )
-                    .map(|_| ())
+                    repository
+                        .run_in(
+                            repo_root_path,
+                            &["fetch", "origin", &fetch_branch, "--no-tags"],
+                        )
+                        .map(|_| ())
                 }),
             );
         }
@@ -231,7 +232,7 @@ impl Cli {
             let branch = self.worktree_branch(ws).unwrap_or_else(|_| "?".to_string());
             let merged = merge_checker
                 .is_merged(ws, &default_branch, |dir, remote| {
-                    self.git
+                    self.repository
                         .run_in(dir, &["merge-base", "--is-ancestor", "HEAD", remote])
                         .map(|(s, _, _)| s == 0)
                         .map_err(|e| format!("{e:#}"))
@@ -246,7 +247,7 @@ impl Cli {
             paths.push(ws.clone());
         }
         if items.is_empty() {
-            self.tmux.show_error(&format!(
+            self.terminal.show_error(&format!(
                 "No worktrees found in {worktree_dir}/ — press Enter to dismiss"
             ))?;
             return Ok(());
@@ -265,7 +266,7 @@ impl Cli {
             _ => return Ok(()),
         };
         if selected_indices.is_empty() {
-            self.tmux.show_error("No worktrees were selected")?;
+            self.terminal.show_error("No worktrees were selected")?;
             return Ok(());
         }
 
@@ -298,17 +299,17 @@ impl Cli {
 
         for (ws_dir, branch) in selected {
             if let Err(e) = self.remove_worktree(repo_root_path, &ws_dir, &branch) {
-                self.tmux
+                self.terminal
                     .show_error(&format!("Worktree removal failed:\n\n{e:#}"))?;
                 return Ok(());
             }
             if let Err(e) = self.delete_branch(repo_root_path, &branch) {
-                self.tmux
+                self.terminal
                     .show_error(&format!("Branch deletion failed:\n\n{e:#}"))?;
                 return Ok(());
             }
             let _ = self
-                .tmux
+                .terminal
                 .run(&["display-message", &format!("Removed worktree: {branch}")]);
         }
         Ok(())
@@ -337,12 +338,12 @@ impl Cli {
         if let Some(root) = project_locator.by_walking(start) {
             return Ok(root);
         }
-        if let Ok(Some(v)) = self.tmux.show_environment("MAIN_PROJECT_PATH")
+        if let Ok(Some(v)) = self.terminal.show_environment("MAIN_PROJECT_PATH")
             && !v.is_empty()
         {
             return Ok(v);
         }
-        let dir = self.tmux.current_pane_path()?;
+        let dir = self.terminal.current_pane_path()?;
         let project_locator = ProjectLocator;
         if let Some(root) = project_locator.by_walking(Path::new(&dir)) {
             return Ok(root);
@@ -352,19 +353,19 @@ impl Cli {
     pub fn resolve_default_branch(&self, repo_root: &Path) -> Result<String> {
         let project_locator = ProjectLocator;
         let global = self
-            .git
+            .repository
             .run_in(repo_root, &["config", "--global", "init.defaultBranch"])
             .ok()
             .and_then(|(s, o, _)| if s == 0 { Some(o) } else { None })
             .unwrap_or_default();
         let local = self
-            .git
+            .repository
             .run_in(repo_root, &["config", "init.defaultBranch"])
             .ok()
             .and_then(|(s, o, _)| if s == 0 { Some(o) } else { None })
             .unwrap_or_default();
         let current = self
-            .git
+            .repository
             .run_in(repo_root, &["branch", "--show-current"])
             .ok()
             .and_then(|(s, o, _)| if s == 0 { Some(o) } else { None })
@@ -378,7 +379,7 @@ impl Cli {
         _work_dir: &str,
     ) -> Result<Vec<std::path::PathBuf>> {
         let (status, out, _) = self
-            .git
+            .repository
             .run_in(repo_root, &["worktree", "list", "--porcelain"])?;
         if status != 0 {
             return Ok(Vec::new());
@@ -412,16 +413,16 @@ impl Cli {
         branch: &str,
         base: &str,
     ) -> Result<()> {
-        let git = &self.git;
+        let repository = &self.repository;
         let loading = &self.loading;
         let _ = loading.run_loading(
             "Fetching origin…",
-            Box::new(move || git.silent_in(repo_root, &["fetch", "origin", "--quiet"])),
+            Box::new(move || repository.silent_in(repo_root, &["fetch", "origin", "--quiet"])),
         );
         let mut base = base.to_string();
         let remote_base = format!("refs/remotes/origin/{base}");
         let exists = self
-            .git
+            .repository
             .run_in(
                 repo_root,
                 &["show-ref", "--verify", "--quiet", &remote_base],
@@ -431,7 +432,7 @@ impl Cli {
         if exists {
             base = format!("origin/{base}");
         }
-        let (status, stdout, stderr) = self.git.run_in(
+        let (status, stdout, stderr) = self.repository.run_in(
             repo_root,
             &[
                 "worktree",
@@ -454,9 +455,9 @@ impl Cli {
 
     pub fn remove_worktree(&self, repo_root: &Path, ws_dir: &Path, branch: &str) -> Result<()> {
         if !branch.is_empty() {
-            self.tmux.kill_window(branch)?;
+            self.terminal.kill_window(branch)?;
         }
-        let (status, stdout, stderr) = self.git.run_in(
+        let (status, stdout, stderr) = self.repository.run_in(
             repo_root,
             &["worktree", "remove", "--force", ws_dir.to_str().unwrap()],
         )?;
@@ -472,7 +473,7 @@ impl Cli {
 
     pub fn worktree_branch(&self, ws_dir: &Path) -> Result<String> {
         let (status, out, _) = self
-            .git
+            .repository
             .run_in(ws_dir, &["rev-parse", "--abbrev-ref", "HEAD"])?;
         if status != 0 {
             return Ok("?".to_string());
@@ -481,7 +482,9 @@ impl Cli {
     }
 
     pub fn delete_branch(&self, repo_root: &Path, branch: &str) -> Result<()> {
-        let (status, stdout, stderr) = self.git.run_in(repo_root, &["branch", "-D", branch])?;
+        let (status, stdout, stderr) = self
+            .repository
+            .run_in(repo_root, &["branch", "-D", branch])?;
         if status != 0 {
             return Err(crate::core::error::Error::new(if stdout.is_empty() {
                 stderr

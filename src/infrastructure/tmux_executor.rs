@@ -1,6 +1,6 @@
 use crate::core::error::Result;
 
-use crate::core::ports::TmuxPort;
+use crate::core::ports::tmux_port::TmuxPort;
 
 use super::command_runner::{CommandRunner, SystemCommandRunner};
 

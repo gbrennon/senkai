@@ -130,14 +130,19 @@ mod tests {
     #[test]
     fn result_ok_variant_works() {
         let res: Result<i32> = Ok(7);
-        assert_eq!(res.unwrap(), 7);
+        let Ok(value) = res else {
+            panic!("expected an Ok result");
+        };
+        assert_eq!(value, 7);
     }
 
     #[test]
     fn result_err_variant_works() {
         let res: Result<i32> = Err(Error::new("fail"));
-        assert!(res.is_err());
-        assert_eq!(res.unwrap_err().to_string(), "fail");
+        let Err(err) = res else {
+            panic!("expected an Err result");
+        };
+        assert_eq!(err.to_string(), "fail");
     }
 
     #[test]

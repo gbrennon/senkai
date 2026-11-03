@@ -1,5 +1,4 @@
 use crate::core::error::Result;
-use std::path::Path;
 
 /// Port for tmux operations — defines the interface the application layer
 /// depends on so infrastructure can be swapped for tests.
@@ -14,11 +13,4 @@ pub trait TmuxPort {
     fn current_pane_path(&self) -> Result<String>;
     fn run(&self, args: &[&str]) -> Result<(i32, String, String)>;
     fn kill_window(&self, name: &str) -> Result<()>;
-}
-
-/// Port for git operations — defines the interface the application layer
-/// depends on so infrastructure can be swapped for tests.
-pub trait GitPort {
-    fn run_in(&self, dir: &Path, args: &[&str]) -> Result<(i32, String, String)>;
-    fn silent_in(&self, dir: &Path, args: &[&str]) -> Result<()>;
 }

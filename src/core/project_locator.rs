@@ -6,7 +6,7 @@ impl ProjectLocator {
     pub fn from_env() -> Option<String> {
         if let Ok(root) = std::env::var("TMUX_WORKTREES_ROOT") {
             let root = root.trim().to_string();
-            if !root.is_empty() && Self::is_git_repo(Path::new(&root)) {
+            if !root.is_empty() && Self::is_repository(Path::new(&root)) {
                 return Some(root);
             }
         }
@@ -16,7 +16,7 @@ impl ProjectLocator {
     pub fn by_walking(&self, start: &Path) -> Option<String> {
         let mut dir = start.to_path_buf();
         loop {
-            if Self::is_git_repo(&dir) {
+            if Self::is_repository(&dir) {
                 return Some(dir.to_string_lossy().into_owned());
             }
             match dir.parent() {
@@ -68,7 +68,7 @@ impl ProjectLocator {
         Ok(())
     }
 
-    fn is_git_repo(dir: &Path) -> bool {
+    fn is_repository(dir: &Path) -> bool {
         let marker = dir.join(".git");
         marker.is_dir() || marker.is_file()
     }
@@ -100,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn project_locator_from_env_returns_none_when_not_git() {
+    fn project_locator_from_env_returns_none_when_not_repository() {
         let dir = tempdir().unwrap();
         unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", dir.path().to_str().unwrap()) };
         let result = ProjectLocator::from_env();
@@ -109,7 +109,7 @@ mod tests {
     }
 
     #[test]
-    fn project_locator_by_walking_finds_git_dir() {
+    fn project_locator_by_walking_finds_repository_dir() {
         let locator = ProjectLocator;
         let dir = tempdir().unwrap();
         let project = dir.path().join("project");
@@ -121,7 +121,7 @@ mod tests {
     }
 
     #[test]
-    fn project_locator_by_walking_finds_git_file_worktree() {
+    fn project_locator_by_walking_finds_repository_file_worktree() {
         let locator = ProjectLocator;
         let dir = tempdir().unwrap();
         let project = dir.path().join("worktree");
