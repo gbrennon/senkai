@@ -3,7 +3,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use tmux_worktrees::core::error::Result;
-use tmux_worktrees::core::ports::TmuxPort;
+use tmux_worktrees::core::ports::tmux_port::TmuxPort;
 
 pub struct StubTmx;
 impl TmuxPort for StubTmx {
