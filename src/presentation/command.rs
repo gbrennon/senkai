@@ -35,18 +35,7 @@ impl FromStr for Command {
         }
     }
 }
-
 impl Command {
-    /// Human-readable display string.
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Choose => "choose",
-            Self::CreateWorktree => "create-worktree",
-            Self::Cleanup => "cleanup",
-            Self::DemoLoading => "demo-loading",
-        }
-    }
-
     /// Whether this command requires an interactive terminal.
     pub fn is_interactive(self) -> bool {
         matches!(self, Self::Choose | Self::Cleanup | Self::DemoLoading)

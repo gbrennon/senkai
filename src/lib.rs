@@ -1,7 +1,6 @@
 pub mod core;
 pub mod infrastructure;
 pub mod presentation;
-pub mod utils;
 
 use infrastructure::container::Container;
 use presentation::cli::Cli;
