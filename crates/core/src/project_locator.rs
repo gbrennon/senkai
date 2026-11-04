@@ -4,7 +4,9 @@ pub struct ProjectLocator;
 
 impl ProjectLocator {
     pub fn from_env() -> Option<String> {
-        if let Ok(root) = std::env::var("TMUX_WORKTREES_ROOT") {
+        let env_val =
+            std::env::var("SENKAI_ROOT").or_else(|_| std::env::var("TMUX_WORKTREES_ROOT"));
+        if let Ok(root) = env_val {
             let root = root.trim().to_string();
             if !root.is_empty() && Self::is_repository(Path::new(&root)) {
                 return Some(root);
@@ -86,15 +88,18 @@ mod tests {
         let project = dir.path().join("project");
         fs::create_dir_all(&project).unwrap();
         fs::create_dir(project.join(".git")).unwrap();
-        unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", project.to_str().unwrap()) };
+        unsafe { std::env::set_var("SENKAI_ROOT", project.to_str().unwrap()) };
         let result = ProjectLocator::from_env();
         assert_eq!(result, Some(project.to_string_lossy().into_owned()));
-        unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
+        unsafe { std::env::remove_var("SENKAI_ROOT") };
     }
 
     #[test]
     fn project_locator_from_env_returns_none_when_not_set() {
-        unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
+        unsafe {
+            std::env::remove_var("SENKAI_ROOT");
+            std::env::remove_var("TMUX_WORKTREES_ROOT");
+        };
         let result = ProjectLocator::from_env();
         assert_eq!(result, None);
     }
@@ -102,9 +107,24 @@ mod tests {
     #[test]
     fn project_locator_from_env_returns_none_when_not_repository() {
         let dir = tempdir().unwrap();
-        unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", dir.path().to_str().unwrap()) };
+        unsafe { std::env::set_var("SENKAI_ROOT", dir.path().to_str().unwrap()) };
         let result = ProjectLocator::from_env();
         assert_eq!(result, None);
+        unsafe { std::env::remove_var("SENKAI_ROOT") };
+    }
+
+    #[test]
+    fn project_locator_from_env_falls_back_to_tmux_worktrees_root() {
+        let dir = tempdir().unwrap();
+        let project = dir.path().join("project");
+        fs::create_dir_all(&project).unwrap();
+        fs::create_dir(project.join(".git")).unwrap();
+        unsafe {
+            std::env::remove_var("SENKAI_ROOT");
+            std::env::set_var("TMUX_WORKTREES_ROOT", project.to_str().unwrap());
+        };
+        let result = ProjectLocator::from_env();
+        assert_eq!(result, Some(project.to_string_lossy().into_owned()));
         unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
     }
 
