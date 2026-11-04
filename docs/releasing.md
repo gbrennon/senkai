@@ -43,5 +43,5 @@ release notes, creates releases on both Codeberg and GitHub, and uploads the
 binary asset to the GitHub release. Codeberg remains the release-notes host;
 GitHub is the binary-download host used by TPM and tpack.
 
-The installer asset is named `tmux-worktrees-x86_64-unknown-linux-gnu.tar.gz`.
+The installer asset is named `sk-x86_64-unknown-linux-gnu.tar.gz`.
 If it is unavailable, the installer builds from source with Cargo.
