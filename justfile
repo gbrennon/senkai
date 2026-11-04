@@ -8,7 +8,7 @@ build:
 
 # install release binary to ~/.cargo/bin
 install:
-    cargo install --path .
+    cargo install --path crates/tmux-worktrees
 
 # run all tests with coverage summary table
 test:
@@ -46,7 +46,7 @@ lint:
 
 
 semgrep:
-    semgrep --error --config .semgrep/architecture.yml src
+    semgrep --error --config .semgrep/architecture.yml crates
 # lint fixes (optionally specify files)
 lint-fix +FILES='':
     cargo clippy --fix --allow-dirty --allow-staged {{FILES}}

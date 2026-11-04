@@ -3,17 +3,17 @@ use std::sync::LazyLock;
 use std::sync::Mutex;
 
 use tempfile::TempDir;
-use tmux_worktrees::presentation::cli::Cli;
-use tmux_worktrees::presentation::command::Command as AppCommand;
+use tmux_worktrees_presentation::cli::Cli;
+use tmux_worktrees_presentation::cli::command::Command as AppCommand;
 
 use super::common::fakes::git::*;
 use super::common::fakes::loading::*;
 use super::common::fakes::selector::*;
 use super::common::fakes::tmux::*;
-use tmux_worktrees::core::ports::repository_port::RepositoryPort;
-use tmux_worktrees::core::ports::tmux_port::TmuxPort;
-use tmux_worktrees::presentation::loading_port::LoadingRunner;
-use tmux_worktrees::presentation::selector_port::SelectorRunner;
+use tmux_worktrees_core::ports::repository_port::RepositoryPort;
+use tmux_worktrees_core::ports::tmux_port::TmuxPort;
+use tmux_worktrees_presentation::tui::loading_port::LoadingRunner;
+use tmux_worktrees_presentation::tui::selector_port::SelectorRunner;
 
 static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
