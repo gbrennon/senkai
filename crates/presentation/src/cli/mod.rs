@@ -6,7 +6,7 @@ use std::time::Duration;
 use senkai_core::error::{Error, Result};
 use senkai_core::{
     merge_checker::MergeChecker,
-    ports::{repository_port::RepositoryPort, tmux_port::TmuxPort},
+    ports::{multiplexer_port::MultiplexerPort, repository_port::RepositoryPort},
     project_locator::ProjectLocator,
     selector::{SelectionResult, Selector},
     shell_quoter::ShellQuoter,
@@ -23,7 +23,7 @@ use clap::Parser;
 pub use command::Command;
 
 pub struct Cli {
-    terminal: Box<dyn TmuxPort>,
+    terminal: Box<dyn MultiplexerPort>,
     repository: Box<dyn RepositoryPort>,
     selector: Box<dyn SelectorRunner>,
     loading: Box<dyn LoadingRunner>,
@@ -31,7 +31,7 @@ pub struct Cli {
 
 impl Cli {
     pub fn new(
-        terminal: Box<dyn TmuxPort>,
+        terminal: Box<dyn MultiplexerPort>,
         repository: Box<dyn RepositoryPort>,
         selector: Box<dyn SelectorRunner>,
         loading: Box<dyn LoadingRunner>,

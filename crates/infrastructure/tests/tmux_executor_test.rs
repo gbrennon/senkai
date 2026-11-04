@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::sync::LazyLock;
 
-use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_infrastructure::command_runner::{CommandRunner, SystemCommandRunner};
 use senkai_infrastructure::tmux_executor::TmuxExecutor;
 
