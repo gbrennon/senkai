@@ -115,7 +115,7 @@ fn dispatch_create_worktree_empty_branch_shows_error() {
 #[test]
 fn run_create_worktree_empty_branch_does_not_panic() {
     let cli = cli_default(FakeTmxShowError, StubGit);
-    cli.run(&["tmux-worktrees".to_string(), "create-worktree".to_string()]);
+    cli.run(&["sk".to_string(), "create-worktree".to_string()]);
 }
 
 #[test]
@@ -124,23 +124,23 @@ fn run_interactive_from_non_tty_uses_popup_path() {
     let guard = tmux.clone();
     let cli = cli_default(tmux, StubGit);
     let root = linked_worktree_root();
-    unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root.path()) };
-    let result = cli.spawn_in_popup(&["tmux-worktrees".to_string(), "choose".to_string()]);
+    unsafe { std::env::set_var("SENKAI_ROOT", root.path()) };
+    let result = cli.spawn_in_popup(&["sk".to_string(), "choose".to_string()]);
     assert!(result.is_ok());
     assert!(!guard.show_error_called.get());
-    unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
+    unsafe { std::env::remove_var("SENKAI_ROOT") };
 }
 
 #[test]
 fn spawn_in_popup_calls_display_popup_when_root_found() {
     let root = linked_worktree_root();
-    unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root.path()) };
+    unsafe { std::env::set_var("SENKAI_ROOT", root.path()) };
     let tmux = FakeTmxPopupOk::new();
     let guard = tmux.clone();
     let cli = cli_default(tmux, StubGit);
-    let result = cli.spawn_in_popup(&["tmux-worktrees".to_string(), "choose".to_string()]);
+    let result = cli.spawn_in_popup(&["sk".to_string(), "choose".to_string()]);
     unsafe {
-        std::env::remove_var("TMUX_WORKTREES_ROOT");
+        std::env::remove_var("SENKAI_ROOT");
     }
     assert!(result.is_ok());
     assert!(guard.display_called.get());
@@ -151,16 +151,16 @@ fn spawn_in_popup_accepts_a_main_repository() {
     let temporary_repository = tempfile::tempdir().unwrap();
     std::fs::create_dir(temporary_repository.path().join(".git")).unwrap();
     unsafe {
-        std::env::set_var("TMUX_WORKTREES_ROOT", temporary_repository.path());
+        std::env::set_var("SENKAI_ROOT", temporary_repository.path());
     }
 
     let tmux = FakeTmxPopupOk::new();
     let guard = tmux.clone();
     let cli = cli_default(tmux, StubGit);
-    let result = cli.spawn_in_popup(&["tmux-worktrees".to_string(), "choose".to_string()]);
+    let result = cli.spawn_in_popup(&["sk".to_string(), "choose".to_string()]);
 
     unsafe {
-        std::env::remove_var("TMUX_WORKTREES_ROOT");
+        std::env::remove_var("SENKAI_ROOT");
     }
     assert!(result.is_ok());
     assert!(guard.display_called.get());
@@ -459,8 +459,10 @@ fn run_choose_opens_existing_worktree_after_branch_rename() {
     std::fs::create_dir(repository_path.join(".git")).unwrap();
 
     let previous_directory = std::env::current_dir().unwrap();
-    let previous_root = std::env::var_os("TMUX_WORKTREES_ROOT");
+    let previous_root = std::env::var_os("SENKAI_ROOT");
+    let previous_tmux_root = std::env::var_os("TMUX_WORKTREES_ROOT");
     unsafe {
+        std::env::set_var("SENKAI_ROOT", repository_path);
         std::env::set_var("TMUX_WORKTREES_ROOT", repository_path);
     }
 
@@ -477,6 +479,10 @@ fn run_choose_opens_existing_worktree_after_branch_rename() {
     let result = cli.run_choose();
 
     match previous_root {
+        Some(root) => unsafe { std::env::set_var("SENKAI_ROOT", root) },
+        None => unsafe { std::env::remove_var("SENKAI_ROOT") },
+    }
+    match previous_tmux_root {
         Some(root) => unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) },
         None => unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") },
     }

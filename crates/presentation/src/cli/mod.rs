@@ -85,7 +85,10 @@ impl Cli {
 
     fn map_cli_args(cli_args: CliArgs) -> (Command, Vec<String>) {
         if let Some(root) = &cli_args.root {
-            unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) };
+            unsafe {
+                std::env::set_var("SENKAI_ROOT", root);
+                std::env::set_var("TMUX_WORKTREES_ROOT", root);
+            };
         }
         match cli_args.command {
             Some(CliCommand::Choose) | None => (Command::Choose, Vec::new()),
@@ -103,10 +106,16 @@ impl Cli {
         while i < args.len() {
             let a = &args[i];
             if let Some(root) = a.strip_prefix("--root=") {
-                unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) };
+                unsafe {
+                    std::env::set_var("SENKAI_ROOT", root);
+                    std::env::set_var("TMUX_WORKTREES_ROOT", root);
+                };
             } else if a == "--root" {
                 if let Some(root) = args.get(i + 1) {
-                    unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) };
+                    unsafe {
+                        std::env::set_var("SENKAI_ROOT", root);
+                        std::env::set_var("TMUX_WORKTREES_ROOT", root);
+                    };
                     i += 1;
                 }
             } else {
