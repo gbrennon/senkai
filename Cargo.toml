@@ -19,9 +19,8 @@ name = "tmux-worktrees"
 path = "src/main.rs"
 
 [[test]]
-name = "container"
-path = "tests/container_test.rs"
-
+name = "app"
+path = "tests/app_test.rs"
 [[test]]
 name = "e2e"
 path = "tests/e2e/mod.rs"
