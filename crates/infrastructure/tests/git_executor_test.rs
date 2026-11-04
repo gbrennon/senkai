@@ -1,8 +1,8 @@
+use senkai_core::error::Result;
+use senkai_infrastructure::command_runner::CommandRunner;
 use std::cell::RefCell;
 use std::path::Path;
 use std::rc::Rc;
-use tmux_worktrees_core::error::Result;
-use tmux_worktrees_infrastructure::command_runner::CommandRunner;
 
 struct FakeGitExecutorForVersion;
 
@@ -262,7 +262,7 @@ mod tests {
 
 mod common;
 use common::fake_runner::FakeRunner;
-use tmux_worktrees_infrastructure::git_executor::GitExecutor;
+use senkai_infrastructure::git_executor::GitExecutor;
 
 fn executor_with(runner: impl CommandRunner + 'static) -> GitExecutor {
     GitExecutor::new(Box::new(runner))

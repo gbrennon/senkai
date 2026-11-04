@@ -2,8 +2,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use tmux_worktrees_core::error::Result;
-use tmux_worktrees_presentation::tui::loading_port::LoadingRunner;
+use senkai_core::error::Result;
+use senkai_presentation::tui::loading_port::LoadingRunner;
 
 pub struct FakeLoading {
     pub labels: Rc<RefCell<Vec<String>>>,

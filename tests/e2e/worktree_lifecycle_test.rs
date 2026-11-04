@@ -2,18 +2,18 @@ use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 use std::sync::Mutex;
 
+use senkai_presentation::cli::Cli;
+use senkai_presentation::cli::command::Command as AppCommand;
 use tempfile::TempDir;
-use tmux_worktrees_presentation::cli::Cli;
-use tmux_worktrees_presentation::cli::command::Command as AppCommand;
 
 use super::common::fakes::git::*;
 use super::common::fakes::loading::*;
 use super::common::fakes::selector::*;
 use super::common::fakes::tmux::*;
-use tmux_worktrees_core::ports::repository_port::RepositoryPort;
-use tmux_worktrees_core::ports::tmux_port::TmuxPort;
-use tmux_worktrees_presentation::tui::loading_port::LoadingRunner;
-use tmux_worktrees_presentation::tui::selector_port::SelectorRunner;
+use senkai_core::ports::repository_port::RepositoryPort;
+use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_presentation::tui::loading_port::LoadingRunner;
+use senkai_presentation::tui::selector_port::SelectorRunner;
 
 static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
@@ -88,7 +88,7 @@ fn init_ephemeral_repo() -> RepoGuard {
 #[test]
 fn parse_args_defaults_to_choose() {
     let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&["tmux-worktrees".to_string()]);
+    let (cmd, rest) = cli.parse_args(&["sk".to_string()]);
     assert_eq!(cmd, AppCommand::Choose);
     assert!(rest.is_empty());
 }
@@ -96,7 +96,7 @@ fn parse_args_defaults_to_choose() {
 #[test]
 fn parse_args_extracts_command() {
     let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&["tmux-worktrees".to_string(), "cleanup".to_string()]);
+    let (cmd, rest) = cli.parse_args(&["sk".to_string(), "cleanup".to_string()]);
     assert_eq!(cmd, AppCommand::Cleanup);
     assert!(rest.is_empty());
 }
@@ -105,7 +105,7 @@ fn parse_args_extracts_command() {
 fn parse_args_preserves_trailing_args() {
     let cli = cli_stub();
     let (cmd, rest) = cli.parse_args(&[
-        "tmux-worktrees".to_string(),
+        "sk".to_string(),
         "create-worktree".to_string(),
         "feat/some-branch".to_string(),
     ]);
@@ -117,7 +117,7 @@ fn parse_args_preserves_trailing_args() {
 fn parse_args_strips_root_equals_flag() {
     let cli = cli_stub();
     let (cmd, _rest) = cli.parse_args(&[
-        "tmux-worktrees".to_string(),
+        "sk".to_string(),
         "choose".to_string(),
         "--root=/tmp/test".to_string(),
     ]);
@@ -130,7 +130,7 @@ fn parse_args_strips_separate_root_flag() {
     let _guard = ENV_LOCK.lock().unwrap();
     let cli = cli_stub();
     let (cmd, rest) = cli.parse_args(&[
-        "tmux-worktrees".to_string(),
+        "sk".to_string(),
         "choose".to_string(),
         "--root".to_string(),
         "/tmp/test".to_string(),
@@ -143,8 +143,7 @@ fn parse_args_strips_separate_root_flag() {
 #[test]
 fn unknown_command_defaults_to_choose() {
     let cli = cli_stub();
-    let (cmd, rest) =
-        cli.parse_args(&["tmux-worktrees".to_string(), "nonexistent-cmd".to_string()]);
+    let (cmd, rest) = cli.parse_args(&["sk".to_string(), "nonexistent-cmd".to_string()]);
     assert_eq!(cmd, AppCommand::Choose);
     assert!(rest.is_empty());
 }

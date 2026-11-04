@@ -1,4 +1,4 @@
-use tmux_worktrees_infrastructure::Container;
+use senkai_infrastructure::Container;
 
 pub struct ContainerProbe;
 

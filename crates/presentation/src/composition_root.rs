@@ -1,5 +1,5 @@
-use tmux_worktrees_core::ports::repository_port::RepositoryPort;
-use tmux_worktrees_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::repository_port::RepositoryPort;
+use senkai_core::ports::tmux_port::TmuxPort;
 
 use crate::application::Application;
 use crate::cli::Cli;

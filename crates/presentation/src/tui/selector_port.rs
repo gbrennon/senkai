@@ -1,5 +1,5 @@
-use tmux_worktrees_core::error::Result;
-use tmux_worktrees_core::selector::{SelectionResult, Selector};
+use senkai_core::error::Result;
+use senkai_core::selector::{SelectionResult, Selector};
 /// Port for running the interactive selector UI — injectable via
 /// dependency inversion so the rest of the presentation layer
 /// can be tested without a real terminal.

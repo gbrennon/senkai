@@ -1,6 +1,6 @@
-use tmux_worktrees_core::error::Result;
+use senkai_core::error::Result;
 
-use tmux_worktrees_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::tmux_port::TmuxPort;
 
 use super::command_runner::{CommandRunner, SystemCommandRunner};
 
@@ -25,7 +25,7 @@ impl TmuxExecutor {
     }
     pub fn run(&self, args: &[&str]) -> Result<(i32, String, String)> {
         let out = self.runner.run("tmux", args, None).map_err(|e| {
-            tmux_worktrees_core::error::Error::new(format!("Failed to run tmux command: {}", e))
+            senkai_core::error::Error::new(format!("Failed to run tmux command: {}", e))
         })?;
         Ok((
             out.status.code().unwrap_or(1),
@@ -110,8 +110,7 @@ impl TmuxExecutor {
         let tmp =
             std::env::temp_dir().join(format!("tmux-worktrees-err-{}.txt", std::process::id()));
         let _ = std::fs::write(&tmp, format!("{msg}\n"));
-        let quoted =
-            tmux_worktrees_core::shell_quoter::ShellQuoter::quote(tmp.to_string_lossy().as_ref());
+        let quoted = senkai_core::shell_quoter::ShellQuoter::quote(tmp.to_string_lossy().as_ref());
         let cmd = format!(
             "cat {quoted}; echo; echo 'Press any key to close...'; bash -c 'read -r -n 1' 2>/dev/null || true; rm -f {quoted}"
         );
@@ -147,7 +146,7 @@ impl TmuxExecutor {
             Ok((0, out, _)) => Ok(out.trim().to_string()),
             _ => std::env::current_dir()
                 .map(|p| p.to_string_lossy().into_owned())
-                .map_err(|e| tmux_worktrees_core::error::Error::new(e.to_string())),
+                .map_err(|e| senkai_core::error::Error::new(e.to_string())),
         }
     }
 

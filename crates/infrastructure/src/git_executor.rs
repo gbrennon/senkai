@@ -1,6 +1,6 @@
-use tmux_worktrees_core::error::Result;
+use senkai_core::error::Result;
 
-use tmux_worktrees_core::ports::repository_port::RepositoryPort;
+use senkai_core::ports::repository_port::RepositoryPort;
 
 use super::command_runner::{CommandRunner, SystemCommandRunner};
 
@@ -15,7 +15,7 @@ impl GitExecutor {
 
     pub fn run_in(&self, cwd: &std::path::Path, args: &[&str]) -> Result<(i32, String, String)> {
         let out = self.runner.run("git", args, Some(cwd)).map_err(|e| {
-            tmux_worktrees_core::error::Error::new(format!("Failed to run git command: {}", e))
+            senkai_core::error::Error::new(format!("Failed to run git command: {}", e))
         })?;
         Ok((
             out.status.code().unwrap_or(1),

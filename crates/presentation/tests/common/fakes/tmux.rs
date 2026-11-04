@@ -2,8 +2,8 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
-use tmux_worktrees_core::error::Result;
-use tmux_worktrees_core::ports::tmux_port::TmuxPort;
+use senkai_core::error::Result;
+use senkai_core::ports::tmux_port::TmuxPort;
 
 pub struct StubTmx;
 impl TmuxPort for StubTmx {
@@ -136,7 +136,7 @@ impl TmuxPort for FakeTmxCreateSuccess {
         Ok(None)
     }
     fn current_pane_path(&self) -> Result<String> {
-        Err(tmux_worktrees_core::error::Error::new("no pane"))
+        Err(senkai_core::error::Error::new("no pane"))
     }
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {
         unimplemented!()
@@ -260,7 +260,7 @@ impl TmuxPort for FakeTmxPopupOk {
         Ok(None)
     }
     fn current_pane_path(&self) -> Result<String> {
-        Err(tmux_worktrees_core::error::Error::new("no pane"))
+        Err(senkai_core::error::Error::new("no pane"))
     }
     fn show_error(&self, _msg: &str) -> Result<()> {
         unimplemented!()
@@ -308,15 +308,13 @@ impl TmuxPort for FakeTmxWindowFail {
         "/bin/bash".into()
     }
     fn select_or_create_window(&self, _n: &str, _p: &str, _c: &str) -> Result<()> {
-        Err(tmux_worktrees_core::error::Error::new(
-            "window creation failed",
-        ))
+        Err(senkai_core::error::Error::new("window creation failed"))
     }
     fn show_environment(&self, _v: &str) -> Result<Option<String>> {
         Ok(None)
     }
     fn current_pane_path(&self) -> Result<String> {
-        Err(tmux_worktrees_core::error::Error::new("no pane"))
+        Err(senkai_core::error::Error::new("no pane"))
     }
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {
         unimplemented!()
@@ -385,7 +383,7 @@ impl TmuxPort for FakeTmxTest {
     fn current_pane_path(&self) -> Result<String> {
         match &self.pane_path {
             Some(p) => Ok(p.clone()),
-            None => Err(tmux_worktrees_core::error::Error::new("no pane")),
+            None => Err(senkai_core::error::Error::new("no pane")),
         }
     }
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {

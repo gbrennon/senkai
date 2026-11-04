@@ -3,14 +3,14 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::sync::LazyLock;
 
-use tmux_worktrees_core::ports::tmux_port::TmuxPort;
-use tmux_worktrees_infrastructure::command_runner::{CommandRunner, SystemCommandRunner};
-use tmux_worktrees_infrastructure::tmux_executor::TmuxExecutor;
+use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_infrastructure::command_runner::{CommandRunner, SystemCommandRunner};
+use senkai_infrastructure::tmux_executor::TmuxExecutor;
 
 mod common;
 use common::fake_runner::FakeRunner;
+use senkai_core::shell_quoter::ShellQuoter;
 use std::sync::{Arc, Mutex};
-use tmux_worktrees_core::shell_quoter::ShellQuoter;
 
 /// Wraps [`SystemCommandRunner`] and prepends `-L <socket>` to every `tmux`
 /// invocation so all commands target the isolated test server.

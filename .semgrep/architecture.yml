@@ -30,7 +30,7 @@ rules:
       include:
         - "**/crates/core/**"
     patterns:
-      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees|tmux_worktrees_infrastructure)::infrastructure\b'
+      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|senkai|senkai_infrastructure)::infrastructure\b'
       - pattern-not-inside: |
           mod tests {
             ...
@@ -45,7 +45,7 @@ rules:
       include:
         - "**/crates/core/**"
     patterns:
-      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees|tmux_worktrees_presentation)::presentation\b'
+      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|senkai|senkai_presentation)::presentation\b'
       - pattern-not-inside: |
           mod tests {
             ...

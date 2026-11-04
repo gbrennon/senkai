@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug, Clone, PartialEq, Eq)]
 #[command(
-    name = "tmux-worktrees",
+    name = "sk",
     about = "A tmux plugin for creating, switching between, and cleaning up Git worktrees",
     version
 )]

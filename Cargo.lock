@@ -1242,6 +1242,45 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a7852d02fc848982e0c167ef163aaff9cd91dc640ba85e263cb1ce46fae51cd"
 
 [[package]]
+name = "senkai"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "senkai-core",
+ "senkai-infrastructure",
+ "senkai-presentation",
+ "tempfile",
+]
+
+[[package]]
+name = "senkai-core"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
+name = "senkai-infrastructure"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "senkai-core",
+]
+
+[[package]]
+name = "senkai-presentation"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "crossterm",
+ "fuzzy-matcher",
+ "ratatui",
+ "senkai-core",
+ "tempfile",
+ "throbber-widgets-tui",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1564,45 +1603,6 @@ name = "time-core"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9e1c906769ad99c88eaa54e728060edef082f8e358ff32030cb7c7d315e81109"
-
-[[package]]
-name = "tmux-worktrees"
-version = "0.5.0"
-dependencies = [
- "libc",
- "tempfile",
- "tmux-worktrees-core",
- "tmux-worktrees-infrastructure",
- "tmux-worktrees-presentation",
-]
-
-[[package]]
-name = "tmux-worktrees-core"
-version = "0.5.0"
-dependencies = [
- "tempfile",
-]
-
-[[package]]
-name = "tmux-worktrees-infrastructure"
-version = "0.5.0"
-dependencies = [
- "libc",
- "tmux-worktrees-core",
-]
-
-[[package]]
-name = "tmux-worktrees-presentation"
-version = "0.5.0"
-dependencies = [
- "clap",
- "crossterm",
- "fuzzy-matcher",
- "ratatui",
- "tempfile",
- "throbber-widgets-tui",
- "tmux-worktrees-core",
-]
 
 [[package]]
 name = "typenum"

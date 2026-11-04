@@ -107,13 +107,14 @@ impl Drop for TmuxGuard {
 
 fn binary_path() -> PathBuf {
     [
+        "CARGO_BIN_EXE_sk",
         "CARGO_BIN_EXE_tmux-worktrees",
-        "CARGO_BIN_EXE_tmux_worktrees",
+        "CARGO_BIN_EXE_senkai",
     ]
     .into_iter()
     .find_map(std::env::var_os)
     .map(PathBuf::from)
-    .expect("Cargo did not provide the tmux-worktrees binary path")
+    .expect("Cargo did not provide the sk binary path")
 }
 
 fn tmux_command(socket: &str, args: &[&str]) -> Output {
