@@ -50,7 +50,7 @@ impl TmuxGuard {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        let socket = format!("tmux-worktrees-e2e-{}-{nonce}", std::process::id());
+        let socket = format!("senkai-e2e-{}-{nonce}", std::process::id());
         let _ = tmux_command(&socket, &["kill-server"]);
         let root = root.to_str().unwrap();
         let binary = binary.to_str().unwrap();
@@ -106,15 +106,9 @@ impl Drop for TmuxGuard {
 }
 
 fn binary_path() -> PathBuf {
-    [
-        "CARGO_BIN_EXE_sk",
-        "CARGO_BIN_EXE_tmux-worktrees",
-        "CARGO_BIN_EXE_senkai",
-    ]
-    .into_iter()
-    .find_map(std::env::var_os)
-    .map(PathBuf::from)
-    .expect("Cargo did not provide the sk binary path")
+    std::env::var_os("CARGO_BIN_EXE_sk")
+        .map(PathBuf::from)
+        .expect("Cargo did not provide the sk binary path")
 }
 
 fn tmux_command(socket: &str, args: &[&str]) -> Output {

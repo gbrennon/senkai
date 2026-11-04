@@ -14,7 +14,7 @@ make_fixture() {
   local fixture="$1"
   mkdir -p "$fixture/bin" "$fixture/src"
   cp "$ROOT/worktree.tmux" "$fixture/worktree.tmux"
-  printf '[package]\nname = "tmux-worktrees"\nversion = "0.4.0"\n' > "$fixture/Cargo.toml"
+  printf '[package]\nname = "senkai"\nversion = "0.1.0"\n' > "$fixture/Cargo.toml"
   printf 'fn main() {}\n' > "$fixture/src/main.rs"
 
   cat > "$fixture/bin/tmux" <<'EOF'
@@ -33,8 +33,8 @@ EOF
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${CARGO_LOG:?CARGO_LOG is required}"
 mkdir -p target/release
-printf '#!/usr/bin/env bash\nexit 0\n' > target/release/tmux-worktrees
-chmod +x target/release/tmux-worktrees
+printf '#!/usr/bin/env bash\nexit 0\n' > target/release/sk
+chmod +x target/release/sk
 EOF
   cat > "$fixture/bin/curl" <<'EOF'
 #!/usr/bin/env bash
@@ -55,7 +55,7 @@ for ((i = 1; i <= $#; i++)); do
   fi
 done
 mkdir -p "$(dirname "$output")"
-tar -czf "$output" -C "${ARCHIVE_SOURCE:?ARCHIVE_SOURCE is required}" tmux-worktrees
+tar -czf "$output" -C "${ARCHIVE_SOURCE:?ARCHIVE_SOURCE is required}" sk
 EOF
   chmod +x "$fixture/bin"/*
 }
@@ -72,54 +72,54 @@ run_installer() {
 fixture="$TEMP_DIR/installed"
 make_fixture "$fixture"
 mkdir -p "$fixture/archive" "$fixture/home"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/bin/tmux-worktrees"
-chmod +x "$fixture/bin/tmux-worktrees"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/bin/sk"
+chmod +x "$fixture/bin/sk"
 run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite installed CLI'
-[[ ! -e "$fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees" ]] \
+[[ ! -e "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] \
   || fail 'Plugin copied a second binary despite installed CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/bin/tmux-worktrees choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/bin/sk choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not use installed CLI'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/bin/tmux-worktrees cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/bin/sk cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not use installed CLI'
 
 fixture="$TEMP_DIR/default-path"
 make_fixture "$fixture"
 mkdir -p "$fixture/archive" "$fixture/home/.cargo/bin"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.cargo/bin/tmux-worktrees"
-chmod +x "$fixture/home/.cargo/bin/tmux-worktrees"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.cargo/bin/sk"
+chmod +x "$fixture/home/.cargo/bin/sk"
 run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite default-path CLI'
-[[ ! -e "$fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees" ]] \
+[[ ! -e "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] \
   || fail 'Plugin copied a second binary despite default-path CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.cargo/bin/tmux-worktrees choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.cargo/bin/sk choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not use default-path CLI'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.cargo/bin/tmux-worktrees cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.cargo/bin/sk cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not use default-path CLI'
 
 fixture="$TEMP_DIR/plugin-path"
 make_fixture "$fixture"
 mkdir -p "$fixture/archive" "$fixture/home/.cargo/bin" \
   "$fixture/home/.tmux/plugins/tmux-worktrees"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.cargo/bin/tmux-worktrees"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees"
-chmod +x "$fixture/home/.cargo/bin/tmux-worktrees" \
-  "$fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.cargo/bin/sk"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.tmux/plugins/tmux-worktrees/sk"
+chmod +x "$fixture/home/.cargo/bin/sk" \
+  "$fixture/home/.tmux/plugins/tmux-worktrees/sk"
 TEST_PATH="$fixture/home/.tmux/plugins/tmux-worktrees:$fixture/bin:/usr/bin:/bin" \
   run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite PATH CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.tmux/plugins/tmux-worktrees/sk choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not prefer PATH CLI over Cargo default path'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.tmux/plugins/tmux-worktrees/sk cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not prefer PATH CLI over Cargo default path'
 
 fixture="$TEMP_DIR/download"
 make_fixture "$fixture"
 mkdir -p "$fixture/archive" "$fixture/home"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/archive/tmux-worktrees"
-chmod +x "$fixture/archive/tmux-worktrees"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/archive/sk"
+chmod +x "$fixture/archive/sk"
 run_installer "$fixture"
-[[ -x "$fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees" ]] || fail 'GitHub asset was not installed'
+[[ -x "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] || fail 'GitHub asset was not installed'
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite successful asset download'
 grep -Fq -- "set-environment -t test-session SSH_AUTH_SOCK $fixture/agent.sock" "$fixture/tmux.log" \
   || fail 'SSH agent socket was not persisted to the tmux session'
@@ -127,10 +127,10 @@ grep -Fq -- "set-environment -t test-session SSH_AUTH_SOCK $fixture/agent.sock" 
 fixture="$TEMP_DIR/fallback"
 make_fixture "$fixture"
 mkdir -p "$fixture/archive" "$fixture/home"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/archive/tmux-worktrees"
-chmod +x "$fixture/archive/tmux-worktrees"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/archive/sk"
+chmod +x "$fixture/archive/sk"
 CURL_FAIL_DOWNLOAD=true run_installer "$fixture"
-[[ -x "$fixture/home/.tmux/plugins/tmux-worktrees/tmux-worktrees" ]] || fail 'source fallback did not install binary'
+[[ -x "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] || fail 'source fallback did not install binary'
 grep -q 'build --release' "$fixture/cargo.log" || fail 'source fallback did not invoke cargo build'
 grep -Fq -- "set-environment -t test-session SSH_AUTH_SOCK $fixture/agent.sock" "$fixture/tmux.log" \
   || fail 'SSH agent socket was not persisted during source fallback'
