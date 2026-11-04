@@ -1,15 +1,51 @@
+[package]
+name = "tmux-worktrees"
+version = "0.5.0"
+edition = "2024"
+description = "A tmux plugin for creating, switching between, and cleaning up Git worktrees"
+readme = "README.md"
+homepage = "https://codeberg.org/gbrennon/tmux-worktrees"
+license = "MIT"
+repository = "https://codeberg.org/gbrennon/tmux-worktrees"
+keywords = ["tmux", "git", "worktree", "terminal", "plugin"]
+categories = ["command-line-utilities", "development-tools"]
+
+[lib]
+name = "tmux_worktrees"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tmux-worktrees"
+path = "src/main.rs"
+
+[[test]]
+name = "container"
+path = "tests/container_test.rs"
+
+[[test]]
+name = "e2e"
+path = "tests/e2e/mod.rs"
+
 [workspace]
 resolver = "2"
 members = [
     "crates/core",
     "crates/infrastructure",
     "crates/presentation",
-    "crates/tmux-worktrees",
 ]
 
 [workspace.package]
 version = "0.5.0"
 edition = "2024"
+
+[dependencies]
+tmux-worktrees-core = { path = "crates/core" }
+tmux-worktrees-presentation = { path = "crates/presentation" }
+tmux-worktrees-infrastructure = { path = "crates/infrastructure" }
+
+[dev-dependencies]
+tempfile = "3.0"
+libc = "0.2"
 
 [profile.release]
 lto = true
