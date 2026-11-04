@@ -18,7 +18,7 @@ collect_commit_messages() {
 abort_if_any_commit_message_violates_conventional_commits() {
   local commits="$1"
   local types="feat|fix|docs|style|refactor|perf|test|chore|revert|ci|build"
-  local merge="^Merge .+"
+  local merge="^[Mm]erge .+"
   local pattern="^(${types})(\(.+\))?: ?.+"
 
   echo "$commits" | while IFS= read -r msg; do
