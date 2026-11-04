@@ -8,11 +8,11 @@ build:
 
 # install release binary to ~/.cargo/bin
 install:
-    cargo install --path crates/tmux-worktrees
+    cargo install --path .
 
 # run all tests with coverage summary table
 test:
-    cargo llvm-cov --fail-under-lines 70 --summary-only -- --test-threads=1
+    cargo llvm-cov --workspace --fail-under-lines 70 --summary-only -- --test-threads=1
 
 # test release and CI Bash scripts with fake external commands
 test-release-scripts:
