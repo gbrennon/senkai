@@ -10,15 +10,15 @@ use super::common::fakes::git::*;
 use super::common::fakes::loading::*;
 use super::common::fakes::selector::*;
 use super::common::fakes::tmux::*;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_core::ports::repository_port::RepositoryPort;
-use senkai_core::ports::tmux_port::TmuxPort;
 use senkai_presentation::tui::loading_port::LoadingRunner;
 use senkai_presentation::tui::selector_port::SelectorRunner;
 
 static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 fn cli_with(
-    tmux: impl TmuxPort + 'static,
+    tmux: impl MultiplexerPort + 'static,
     git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
     loading: impl LoadingRunner + 'static,

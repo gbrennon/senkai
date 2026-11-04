@@ -5,8 +5,8 @@ use common::fakes::git::*;
 use common::fakes::loading::*;
 use common::fakes::selector::*;
 use common::fakes::tmux::*;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_core::ports::repository_port::RepositoryPort;
-use senkai_core::ports::tmux_port::TmuxPort;
 use senkai_core::selector::SelectionResult;
 use senkai_presentation::cli::Cli;
 use senkai_presentation::cli::command::Command;
@@ -14,7 +14,7 @@ use senkai_presentation::tui::loading_port::LoadingRunner;
 use senkai_presentation::tui::selector_port::SelectorRunner;
 
 fn cli_with(
-    tmux: impl TmuxPort + 'static,
+    tmux: impl MultiplexerPort + 'static,
     git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
 ) -> Cli {
@@ -22,7 +22,7 @@ fn cli_with(
 }
 
 fn cli_with_loading(
-    tmux: impl TmuxPort + 'static,
+    tmux: impl MultiplexerPort + 'static,
     git: impl RepositoryPort + 'static,
     selector: impl SelectorRunner + 'static,
     loading: impl LoadingRunner + 'static,
@@ -35,7 +35,7 @@ fn cli_with_loading(
     )
 }
 
-fn cli_default(tmux: impl TmuxPort + 'static, git: impl RepositoryPort + 'static) -> Cli {
+fn cli_default(tmux: impl MultiplexerPort + 'static, git: impl RepositoryPort + 'static) -> Cli {
     cli_with(tmux, git, StubSelector)
 }
 

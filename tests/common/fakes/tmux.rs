@@ -3,10 +3,10 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use senkai_core::error::Result;
-use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 
 pub struct StubTmx;
-impl TmuxPort for StubTmx {
+impl MultiplexerPort for StubTmx {
     fn show_error(&self, _msg: &str) -> Result<()> {
         unimplemented!()
     }
@@ -40,7 +40,7 @@ impl TmuxPort for StubTmx {
 }
 
 pub struct FakeTmxShowError;
-impl TmuxPort for FakeTmxShowError {
+impl MultiplexerPort for FakeTmxShowError {
     fn show_error(&self, _msg: &str) -> Result<()> {
         Ok(())
     }
@@ -84,7 +84,7 @@ impl FakeTmxNonTty {
         }
     }
 }
-impl TmuxPort for FakeTmxNonTty {
+impl MultiplexerPort for FakeTmxNonTty {
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {
         Ok(())
     }
@@ -119,7 +119,7 @@ impl TmuxPort for FakeTmxNonTty {
 }
 
 pub struct FakeTmxCreateSuccess;
-impl TmuxPort for FakeTmxCreateSuccess {
+impl MultiplexerPort for FakeTmxCreateSuccess {
     fn show_error(&self, _msg: &str) -> Result<()> {
         Ok(())
     }
@@ -153,7 +153,7 @@ impl TmuxPort for FakeTmxCreateSuccess {
 }
 
 pub struct FakeTmxWithWindow;
-impl TmuxPort for FakeTmxWithWindow {
+impl MultiplexerPort for FakeTmxWithWindow {
     fn run(&self, args: &[&str]) -> Result<(i32, String, String)> {
         match args {
             ["list-windows", "-F", "{window_name}"] => Ok((0, "wt-feat/x\n".into(), String::new())),
@@ -196,7 +196,7 @@ impl TmuxPort for FakeTmxWithWindow {
 }
 
 pub struct FakeTmxNoWindow;
-impl TmuxPort for FakeTmxNoWindow {
+impl MultiplexerPort for FakeTmxNoWindow {
     fn run(&self, args: &[&str]) -> Result<(i32, String, String)> {
         match args {
             ["list-windows", "-F", "{window_name}"] => {
@@ -251,7 +251,7 @@ impl FakeTmxPopupOk {
         }
     }
 }
-impl TmuxPort for FakeTmxPopupOk {
+impl MultiplexerPort for FakeTmxPopupOk {
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {
         self.display_called.set(true);
         Ok(())
@@ -296,7 +296,7 @@ impl FakeTmxWindowFail {
         }
     }
 }
-impl TmuxPort for FakeTmxWindowFail {
+impl MultiplexerPort for FakeTmxWindowFail {
     fn show_error(&self, _msg: &str) -> Result<()> {
         self.show_error_called.set(true);
         Ok(())
@@ -360,7 +360,7 @@ impl FakeTmxTest {
         }
     }
 }
-impl TmuxPort for FakeTmxTest {
+impl MultiplexerPort for FakeTmxTest {
     fn show_error(&self, msg: &str) -> Result<()> {
         self.show_error_called.set(true);
         *self.show_error_msg.borrow_mut() = msg.to_string();

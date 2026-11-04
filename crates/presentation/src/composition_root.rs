@@ -1,5 +1,5 @@
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_core::ports::repository_port::RepositoryPort;
-use senkai_core::ports::tmux_port::TmuxPort;
 
 use crate::application::Application;
 use crate::cli::Cli;
@@ -9,7 +9,7 @@ pub struct CompositionRoot;
 
 impl CompositionRoot {
     pub fn compose(
-        terminal: Box<dyn TmuxPort>,
+        terminal: Box<dyn MultiplexerPort>,
         repository: Box<dyn RepositoryPort>,
     ) -> Application {
         let cli = Cli::new(

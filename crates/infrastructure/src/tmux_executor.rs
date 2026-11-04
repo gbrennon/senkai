@@ -1,6 +1,6 @@
 use senkai_core::error::Result;
 
-use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 
 use super::command_runner::{CommandRunner, SystemCommandRunner};
 
@@ -160,7 +160,7 @@ impl TmuxExecutor {
     }
 }
 
-impl TmuxPort for TmuxExecutor {
+impl MultiplexerPort for TmuxExecutor {
     fn show_error(&self, msg: &str) -> Result<()> {
         self.show_error(msg)
     }
