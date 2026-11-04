@@ -6,7 +6,7 @@ use std::os::unix::process::ExitStatusExt;
 use std::path::Path;
 use std::process::Output;
 
-use tmux_worktrees::infrastructure::command_runner::CommandRunner;
+use tmux_worktrees_infrastructure::command_runner::CommandRunner;
 
 /// Pre-configured response; stored raw because [`Output`] is not `Clone`.
 #[derive(Clone)]

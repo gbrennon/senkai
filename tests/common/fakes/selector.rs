@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 use std::cell::RefCell;
 
-use tmux_worktrees::core::error::Result;
-use tmux_worktrees::core::selector::{SelectionResult, Selector};
-use tmux_worktrees::presentation::selector_port::SelectorRunner;
+use tmux_worktrees_core::error::Result;
+use tmux_worktrees_core::selector::{SelectionResult, Selector};
+use tmux_worktrees_presentation::tui::selector_port::SelectorRunner;
 
 /// Selector runner for tests that returns a canned result.
 pub struct StubSelector;

@@ -1,0 +1,13 @@
+[package]
+name = "tmux-worktrees-core"
+version = "0.5.0"
+edition = "2024"
+description = "Core domain logic for tmux-worktrees"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[dev-dependencies]
+tempfile = "3.0"

@@ -1,0 +1,14 @@
+[package]
+name = "tmux-worktrees-infrastructure"
+version = "0.5.0"
+edition = "2024"
+description = "Infrastructure adapters for tmux-worktrees"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+tmux-worktrees-core = { path = "../core" }
+
+[dev-dependencies]
+libc = "0.2"

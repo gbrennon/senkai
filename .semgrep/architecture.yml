@@ -6,7 +6,7 @@ rules:
     severity: ERROR
     paths:
       include:
-        - "/src/core/**"
+        - "**/crates/core/**"
     pattern-either:
       - patterns:
           - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+(?!(?:std|core|alloc|crate|self|super)(?:\s*::|\s*\{|\s*;))'
@@ -28,9 +28,9 @@ rules:
     severity: ERROR
     paths:
       include:
-        - "/src/core/**"
+        - "**/crates/core/**"
     patterns:
-      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees)::infrastructure\b'
+      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees|tmux_worktrees_infrastructure)::infrastructure\b'
       - pattern-not-inside: |
           mod tests {
             ...
@@ -43,9 +43,9 @@ rules:
     severity: ERROR
     paths:
       include:
-        - "/src/core/**"
+        - "**/crates/core/**"
     patterns:
-      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees)::presentation\b'
+      - pattern-regex: '(?m)^\s*(?:pub(?:\([^)]*\))?\s+)?use\s+[^;]*(?:crate|tmux_worktrees|tmux_worktrees_presentation)::presentation\b'
       - pattern-not-inside: |
           mod tests {
             ...

@@ -1,0 +1,9 @@
+#[cfg(test)]
+mod tests {
+    use tmux_worktrees::container::Container;
+
+    #[test]
+    fn container_builds_cli_without_panicking() {
+        let _cli = Container::build_cli();
+    }
+}

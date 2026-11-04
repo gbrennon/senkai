@@ -1,0 +1,19 @@
+[package]
+name = "tmux-worktrees-presentation"
+version = "0.5.0"
+edition = "2024"
+description = "Presentation layer (CLI + TUI) for tmux-worktrees"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+tmux-worktrees-core = { path = "../core" }
+clap = { version = "4", features = ["derive"] }
+crossterm = "0.29"
+ratatui = "0.30"
+fuzzy-matcher = "0.3"
+throbber-widgets-tui = "0.11.1"
+
+[dev-dependencies]
+tempfile = "3.0"
