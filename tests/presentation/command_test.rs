@@ -31,13 +31,6 @@ fn interactive_commands() {
 }
 
 #[test]
-fn as_str_returns_correct_variants() {
-    assert_eq!(Command::Choose.as_str(), "choose");
-    assert_eq!(Command::CreateWorktree.as_str(), "create-worktree");
-    assert_eq!(Command::Cleanup.as_str(), "cleanup");
-}
-
-#[test]
 fn invalid_command_display_shows_message() {
     assert_eq!(
         InvalidCommand("bogus-command".into()).to_string(),

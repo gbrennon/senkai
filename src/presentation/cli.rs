@@ -103,16 +103,16 @@ impl Cli {
                 .map(std::path::PathBuf::from)
                 .unwrap_or_else(|| std::path::PathBuf::from("tmux-worktrees"))
         });
-        let mut cmd = crate::utils::ShellQuoter::quote(&exe.to_string_lossy());
+        let mut cmd = crate::core::shell_quoter::ShellQuoter::quote(&exe.to_string_lossy());
         for a in args.iter().skip(1) {
             if a.starts_with("--root") {
                 continue;
             }
             cmd.push(' ');
-            cmd.push_str(&crate::utils::ShellQuoter::quote(a));
+            cmd.push_str(&crate::core::shell_quoter::ShellQuoter::quote(a));
         }
         cmd.push_str(" --root=");
-        cmd.push_str(&crate::utils::ShellQuoter::quote(&root));
+        cmd.push_str(&crate::core::shell_quoter::ShellQuoter::quote(&root));
         let _ = self.terminal.display_popup("60%", "50%", &root, &cmd);
         Ok(())
     }
@@ -394,16 +394,6 @@ impl Cli {
             }
         }
         Ok(res)
-    }
-
-    pub fn list_worktree_names(&self, repo_root: &Path, work_dir: &str) -> Result<Vec<String>> {
-        let mut names: Vec<String> = self
-            .list_worktrees(repo_root, work_dir)?
-            .iter()
-            .filter_map(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
-            .collect();
-        names.sort();
-        Ok(names)
     }
 
     pub fn create_worktree(

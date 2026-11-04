@@ -8,7 +8,7 @@ use super::command_runner::{CommandRunner, SystemCommandRunner};
 /// injected [`CommandRunner`] so tests can supply a fake and never touch a real
 /// tmux server.
 pub struct TmuxExecutor {
-    runner: Box<dyn CommandRunner>,
+    pub runner: Box<dyn CommandRunner>,
 }
 
 impl Default for TmuxExecutor {
@@ -20,11 +20,6 @@ impl Default for TmuxExecutor {
 }
 
 impl TmuxExecutor {
-    #[allow(dead_code)]
-    pub fn with_runner(runner: Box<dyn CommandRunner>) -> Self {
-        Self { runner }
-    }
-
     pub fn run(&self, args: &[&str]) -> Result<(i32, String, String)> {
         let out = self.runner.run("tmux", args, None).map_err(|e| {
             crate::core::error::Error::new(format!("Failed to run tmux command: {}", e))
@@ -112,7 +107,7 @@ impl TmuxExecutor {
         let tmp =
             std::env::temp_dir().join(format!("tmux-worktrees-err-{}.txt", std::process::id()));
         let _ = std::fs::write(&tmp, format!("{msg}\n"));
-        let quoted = crate::utils::ShellQuoter::quote(tmp.to_string_lossy().as_ref());
+        let quoted = crate::core::shell_quoter::ShellQuoter::quote(tmp.to_string_lossy().as_ref());
         let cmd = format!(
             "cat {quoted}; echo; echo 'Press any key to close...'; bash -c 'read -r -n 1' 2>/dev/null || true; rm -f {quoted}"
         );

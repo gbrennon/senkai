@@ -8,7 +8,7 @@ use tmux_worktrees::infrastructure::tmux_executor::TmuxExecutor;
 
 use super::common::fakes::command_runner::FakeRunner;
 use std::sync::{Arc, Mutex};
-use tmux_worktrees::utils::ShellQuoter;
+use tmux_worktrees::core::shell_quoter::ShellQuoter;
 
 /// Wraps [`SystemCommandRunner`] and prepends `-L <socket>` to every `tmux`
 /// invocation so all commands target the isolated test server.
@@ -92,10 +92,10 @@ fn ensure_test_server() -> Option<&'static str> {
 }
 
 fn executor_for_test(socket: &str) -> TmuxExecutor {
-    TmuxExecutor::with_runner(Box::new(SocketRunner {
+    executor_with(SocketRunner {
         socket: socket.to_owned(),
         inner: SystemCommandRunner,
-    }))
+    })
 }
 
 #[derive(Clone, Default)]
@@ -310,9 +310,10 @@ mod tests {
 
 static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
-/// Build a `TmuxExecutor` backed by the given `FakeRunner`.
-fn executor_with(runner: FakeRunner) -> TmuxExecutor {
-    TmuxExecutor::with_runner(Box::new(runner))
+fn executor_with(runner: impl CommandRunner + 'static) -> TmuxExecutor {
+    TmuxExecutor {
+        runner: Box::new(runner),
+    }
 }
 
 #[test]
@@ -660,9 +661,7 @@ fn show_error_tries_popup_then_falls_back_to_display_message() {
 fn show_error_keeps_popup_open_until_keypress() {
     let runner = RecordingRunner::default();
     let calls = runner.calls.clone();
-    TmuxExecutor::with_runner(Box::new(runner))
-        .show_error("ok msg")
-        .unwrap();
+    executor_with(runner).show_error("ok msg").unwrap();
 
     let calls = calls.lock().unwrap();
     let popup = calls

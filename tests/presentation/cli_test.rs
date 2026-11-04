@@ -297,15 +297,6 @@ fn list_worktrees_includes_worktrees_outside_configured_directory() {
 }
 
 #[test]
-fn list_worktree_names_extracts_sorted_names() {
-    let cli = cli_default(StubTmx, FakeGitWorktreeListOk);
-    let result = cli.list_worktree_names(Path::new("/tmp/repo"), "worktrees");
-    assert!(result.is_ok());
-    let names = result.unwrap();
-    assert_eq!(names, vec!["feat-a", "fix-b"]);
-}
-
-#[test]
 fn resolve_default_branch_uses_configured_values() {
     let cli = cli_default(StubTmx, FakeGitDefaultBranch);
     let result = cli.resolve_default_branch(Path::new("/tmp/repo"));
@@ -485,10 +476,6 @@ fn run_choose_opens_existing_worktree_after_branch_rename() {
     );
     let cli = cli_with(tmux, git, selector);
 
-    let names = cli
-        .list_worktree_names(repository_path, ".worktrees")
-        .unwrap();
-    assert_eq!(names, vec!["external-worktree"]);
     let result = cli.run_choose();
 
     match previous_root {
