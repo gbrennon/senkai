@@ -19,7 +19,7 @@ mod tests {
     #[test]
     fn composition_root_composes_application() {
         let app = CompositionRootProbe::probe();
-        let (cmd, rest) = app.cli().parse_args(&["tmux-worktrees".to_string()]);
+        let (cmd, rest) = app.cli().parse_args(&["sk".to_string()]);
         assert_eq!(cmd, senkai_presentation::cli::command::Command::Choose);
         assert!(rest.is_empty());
     }

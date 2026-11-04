@@ -2,7 +2,7 @@
 set -euo pipefail
 
 readonly VERSION="${VERSION:?VERSION is required}"
-readonly BINARY_NAME="tmux-worktrees"
+readonly BINARY_NAME="${BINARY_NAME:-sk}"
 readonly MANIFEST="${CARGO_MANIFEST:-Cargo.toml}"
 readonly OUTPUT_DIR="${RELEASE_ASSET_DIR:-dist}"
 

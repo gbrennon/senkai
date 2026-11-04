@@ -8,7 +8,7 @@ set -euo pipefail
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_NAME="tmux-worktrees"
 PLUGIN_DIR="$HOME/.tmux/plugins/$PLUGIN_NAME"
-BINARY_NAME="tmux-worktrees"
+BINARY_NAME="sk"
 CARGO_BIN_DIR="${CARGO_HOME:-$HOME/.cargo}/bin"
 BINARY_PATH=""
 REPO_DIR="$CURRENT_DIR"
