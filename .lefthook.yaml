@@ -11,7 +11,7 @@ pre-commit:
           just fmt -- $STAGED_FILES
         fi
         just lint-fix
-        cargo fix --lib -p tmux-worktrees --allow-dirty --allow-staged
+        cargo fix --lib -p senkai --allow-dirty --allow-staged
 
     - name: Check for auto-fixed files
       run: |

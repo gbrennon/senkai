@@ -2,8 +2,8 @@
 use std::cell::RefCell;
 use std::path::Path;
 
-use tmux_worktrees_core::error::Result;
-use tmux_worktrees_core::ports::repository_port::RepositoryPort;
+use senkai_core::error::Result;
+use senkai_core::ports::repository_port::RepositoryPort;
 
 pub struct StubGit;
 impl RepositoryPort for StubGit {

@@ -1,4 +1,4 @@
-use tmux_worktrees_presentation::{Application, CompositionRoot};
+use senkai_presentation::{Application, CompositionRoot};
 
 mod common;
 use common::fakes::git::StubGit;
@@ -20,10 +20,7 @@ mod tests {
     fn composition_root_composes_application() {
         let app = CompositionRootProbe::probe();
         let (cmd, rest) = app.cli().parse_args(&["tmux-worktrees".to_string()]);
-        assert_eq!(
-            cmd,
-            tmux_worktrees_presentation::cli::command::Command::Choose
-        );
+        assert_eq!(cmd, senkai_presentation::cli::command::Command::Choose);
         assert!(rest.is_empty());
     }
 }

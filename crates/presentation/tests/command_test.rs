@@ -1,4 +1,4 @@
-use tmux_worktrees_presentation::cli::command::{Command, InvalidCommand};
+use senkai_presentation::cli::command::{Command, InvalidCommand};
 
 #[test]
 fn parse_choose() {

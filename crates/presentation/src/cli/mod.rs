@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use std::thread;
 use std::time::Duration;
 
-use tmux_worktrees_core::error::{Error, Result};
-use tmux_worktrees_core::{
+use senkai_core::error::{Error, Result};
+use senkai_core::{
     merge_checker::MergeChecker,
     ports::{repository_port::RepositoryPort, tmux_port::TmuxPort},
     project_locator::ProjectLocator,
@@ -137,7 +137,7 @@ impl Cli {
         let exe = std::env::current_exe().unwrap_or_else(|_| {
             args.first()
                 .map(PathBuf::from)
-                .unwrap_or_else(|| PathBuf::from("tmux-worktrees"))
+                .unwrap_or_else(|| PathBuf::from("sk"))
         });
         let mut cmd = ShellQuoter::quote(&exe.to_string_lossy());
         for a in args.iter().skip(1) {

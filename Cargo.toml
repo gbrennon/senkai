@@ -1,6 +1,6 @@
 [package]
-name = "tmux-worktrees"
-version = "0.5.0"
+name = "senkai"
+version = "0.1.0"
 edition = "2024"
 description = "A tmux plugin for creating, switching between, and cleaning up Git worktrees"
 readme = "README.md"
@@ -11,11 +11,11 @@ keywords = ["tmux", "git", "worktree", "terminal", "plugin"]
 categories = ["command-line-utilities", "development-tools"]
 
 [lib]
-name = "tmux_worktrees"
+name = "senkai"
 path = "src/lib.rs"
 
 [[bin]]
-name = "tmux-worktrees"
+name = "sk"
 path = "src/main.rs"
 
 [[test]]
@@ -34,13 +34,13 @@ members = [
 ]
 
 [workspace.package]
-version = "0.5.0"
+version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-tmux-worktrees-core = { path = "crates/core" }
-tmux-worktrees-presentation = { path = "crates/presentation" }
-tmux-worktrees-infrastructure = { path = "crates/infrastructure" }
+senkai-core = { path = "crates/core" }
+senkai-presentation = { path = "crates/presentation" }
+senkai-infrastructure = { path = "crates/infrastructure" }
 
 [dev-dependencies]
 tempfile = "3.0"

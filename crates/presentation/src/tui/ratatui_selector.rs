@@ -57,7 +57,7 @@ fn key_from_event_key(event: crossterm::event::KeyEvent) -> Key {
 use ratatui::backend::TestBackend;
 
 use super::selector_port::SelectorRunner;
-use tmux_worktrees_core::{
+use senkai_core::{
     error::{Error, Result},
     selector::{Key, SelectionResult, Selector},
 };

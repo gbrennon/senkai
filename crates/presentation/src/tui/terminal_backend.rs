@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use ratatui::{Frame, Terminal, backend::Backend};
-use tmux_worktrees_core::error::{Error, Result};
+use senkai_core::error::{Error, Result};
 
 pub(crate) trait TerminalBackend {
     type Term: Backend;

@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::tui::loading_port::LoadingRunner;
 use crate::tui::terminal_backend::{RealTerminal, TerminalBackend};
 use crate::tui::widgets::loading::LoadingIndicator;
-use tmux_worktrees_core::error::{Error, Result};
+use senkai_core::error::{Error, Result};
 
 const FRAME_DELAY: Duration = Duration::from_millis(100);
 const INPUT_IDLE_GRACE: Duration = Duration::from_millis(500);

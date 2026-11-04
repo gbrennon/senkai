@@ -5,13 +5,13 @@ use common::fakes::git::*;
 use common::fakes::loading::*;
 use common::fakes::selector::*;
 use common::fakes::tmux::*;
-use tmux_worktrees_core::ports::repository_port::RepositoryPort;
-use tmux_worktrees_core::ports::tmux_port::TmuxPort;
-use tmux_worktrees_core::selector::SelectionResult;
-use tmux_worktrees_presentation::cli::Cli;
-use tmux_worktrees_presentation::cli::command::Command;
-use tmux_worktrees_presentation::tui::loading_port::LoadingRunner;
-use tmux_worktrees_presentation::tui::selector_port::SelectorRunner;
+use senkai_core::ports::repository_port::RepositoryPort;
+use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_core::selector::SelectionResult;
+use senkai_presentation::cli::Cli;
+use senkai_presentation::cli::command::Command;
+use senkai_presentation::tui::loading_port::LoadingRunner;
+use senkai_presentation::tui::selector_port::SelectorRunner;
 
 fn cli_with(
     tmux: impl TmuxPort + 'static,
@@ -52,7 +52,7 @@ fn linked_worktree_root() -> tempfile::TempDir {
 #[test]
 fn parse_args_defaults_to_choose() {
     let cli = cli_default(StubTmx, StubGit);
-    let (cmd, rest) = cli.parse_args(&["tmux-worktrees".to_string()]);
+    let (cmd, rest) = cli.parse_args(&["sk".to_string()]);
     assert_eq!(cmd, Command::Choose);
     assert!(rest.is_empty());
 }
@@ -61,7 +61,7 @@ fn parse_args_defaults_to_choose() {
 fn parse_args_extracts_root_and_branch() {
     let cli = cli_default(StubTmx, StubGit);
     let (cmd, rest) = cli.parse_args(&[
-        "tmux-worktrees".to_string(),
+        "sk".to_string(),
         "create-worktree".to_string(),
         "feat/foo".to_string(),
         "--root=/home/user/repo".to_string(),
@@ -74,7 +74,7 @@ fn parse_args_extracts_root_and_branch() {
 fn parse_args_supports_separate_root_flag() {
     let cli = cli_default(StubTmx, StubGit);
     let (cmd, rest) = cli.parse_args(&[
-        "tmux-worktrees".to_string(),
+        "sk".to_string(),
         "choose".to_string(),
         "--root".to_string(),
         "/home/user/repo".to_string(),
@@ -86,25 +86,22 @@ fn parse_args_supports_separate_root_flag() {
 #[test]
 fn parse_args_handles_root_flag_at_end_no_value() {
     let cli = cli_default(StubTmx, StubGit);
-    let (_cmd, rest) = cli.parse_args(&[
-        "tmux-worktrees".to_string(),
-        "choose".to_string(),
-        "--root".to_string(),
-    ]);
+    let (_cmd, rest) =
+        cli.parse_args(&["sk".to_string(), "choose".to_string(), "--root".to_string()]);
     assert!(rest.is_empty());
 }
 
 #[test]
 fn parse_args_cleanup_command() {
     let cli = cli_default(StubTmx, StubGit);
-    let (cmd, _) = cli.parse_args(&["tmux-worktrees".to_string(), "cleanup".to_string()]);
+    let (cmd, _) = cli.parse_args(&["sk".to_string(), "cleanup".to_string()]);
     assert_eq!(cmd, Command::Cleanup);
 }
 
 #[test]
 fn unknown_command_defaults_to_choose() {
     let cli = cli_default(StubTmx, StubGit);
-    let (cmd, _rest) = cli.parse_args(&["tmux-worktrees".to_string(), "bogus".to_string()]);
+    let (cmd, _rest) = cli.parse_args(&["sk".to_string(), "bogus".to_string()]);
     assert_eq!(cmd, Command::Choose);
 }
 
