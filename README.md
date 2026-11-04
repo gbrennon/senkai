@@ -38,7 +38,7 @@ prompting for a password. If you start or restart your agent later, reload the
 plugin from a shell with the agent exported (or source `worktree.tmux` again)
 to refresh the session socket path.
 
-If `tmux-worktrees` is already installed in `PATH` (for example with Cargo or
+If `sk` is already installed in `PATH` (for example with Cargo or
 from a release package), TPM, tpack, and direct execution use that CLI
 directly. If tmux's `PATH` does not include it, the plugin also checks
 `~/.cargo/bin`, `~/.local/bin`, `/usr/local/bin`, and `/usr/bin` before falling
