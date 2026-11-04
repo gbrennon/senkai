@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::sync::LazyLock;
 
-use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_infrastructure::command_runner::{CommandRunner, SystemCommandRunner};
 use senkai_infrastructure::tmux_executor::TmuxExecutor;
 
@@ -33,7 +33,7 @@ impl CommandRunner for SocketRunner {
 
 /// Deterministic socket name for this test process's isolated tmux server.
 fn test_socket_name() -> String {
-    format!("tmux-worktrees-test-{}", std::process::id())
+    format!("senkai-test-{}", std::process::id())
 }
 
 /// Absolute path tmux uses for a named socket: `$TMUX_TMPDIR`/`/tmp` then
@@ -640,20 +640,8 @@ fn display_popup_ok() {
 #[test]
 fn show_error_tries_popup_then_falls_back_to_display_message() {
     let f = FakeRunner::new();
-    f.ok(
-        "tmux",
-        &display_popup_key("tmux-worktrees-err"),
-        1,
-        "",
-        "no server",
-    );
-    f.ok(
-        "tmux",
-        &display_msg_key("tmux-worktrees: test msg"),
-        0,
-        "",
-        "",
-    );
+    f.ok("tmux", &display_popup_key("senkai-err"), 1, "", "no server");
+    f.ok("tmux", &display_msg_key("senkai: test msg"), 0, "", "");
     executor_with(f).show_error("test msg").unwrap();
 }
 
@@ -679,7 +667,7 @@ fn show_error_keeps_popup_open_until_keypress() {
 /// match on the prefix and suffix that is stable.
 fn display_popup_key(_txt_prefix: &str) -> String {
     let tmp = std::env::temp_dir()
-        .join("tmux-worktrees-err-0.txt")
+        .join("senkai-err-0.txt")
         .to_string_lossy()
         .to_string();
     let quoted = ShellQuoter::quote(&tmp);

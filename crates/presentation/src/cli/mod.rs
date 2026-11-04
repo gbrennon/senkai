@@ -6,7 +6,7 @@ use std::time::Duration;
 use senkai_core::error::{Error, Result};
 use senkai_core::{
     merge_checker::MergeChecker,
-    ports::{repository_port::RepositoryPort, tmux_port::TmuxPort},
+    ports::{multiplexer_port::MultiplexerPort, repository_port::RepositoryPort},
     project_locator::ProjectLocator,
     selector::{SelectionResult, Selector},
     shell_quoter::ShellQuoter,
@@ -23,7 +23,7 @@ use clap::Parser;
 pub use command::Command;
 
 pub struct Cli {
-    terminal: Box<dyn TmuxPort>,
+    terminal: Box<dyn MultiplexerPort>,
     repository: Box<dyn RepositoryPort>,
     selector: Box<dyn SelectorRunner>,
     loading: Box<dyn LoadingRunner>,
@@ -31,7 +31,7 @@ pub struct Cli {
 
 impl Cli {
     pub fn new(
-        terminal: Box<dyn TmuxPort>,
+        terminal: Box<dyn MultiplexerPort>,
         repository: Box<dyn RepositoryPort>,
         selector: Box<dyn SelectorRunner>,
         loading: Box<dyn LoadingRunner>,
@@ -85,7 +85,10 @@ impl Cli {
 
     fn map_cli_args(cli_args: CliArgs) -> (Command, Vec<String>) {
         if let Some(root) = &cli_args.root {
-            unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) };
+            unsafe {
+                std::env::set_var("SENKAI_ROOT", root);
+                std::env::set_var("TMUX_WORKTREES_ROOT", root);
+            };
         }
         match cli_args.command {
             Some(CliCommand::Choose) | None => (Command::Choose, Vec::new()),
@@ -103,10 +106,16 @@ impl Cli {
         while i < args.len() {
             let a = &args[i];
             if let Some(root) = a.strip_prefix("--root=") {
-                unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) };
+                unsafe {
+                    std::env::set_var("SENKAI_ROOT", root);
+                    std::env::set_var("TMUX_WORKTREES_ROOT", root);
+                };
             } else if a == "--root" {
                 if let Some(root) = args.get(i + 1) {
-                    unsafe { std::env::set_var("TMUX_WORKTREES_ROOT", root) };
+                    unsafe {
+                        std::env::set_var("SENKAI_ROOT", root);
+                        std::env::set_var("TMUX_WORKTREES_ROOT", root);
+                    };
                     i += 1;
                 }
             } else {

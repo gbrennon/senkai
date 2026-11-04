@@ -1,6 +1,6 @@
 use senkai_core::error::Result;
 
-use senkai_core::ports::tmux_port::TmuxPort;
+use senkai_core::ports::multiplexer_port::MultiplexerPort;
 
 use super::command_runner::{CommandRunner, SystemCommandRunner};
 
@@ -107,8 +107,7 @@ impl TmuxExecutor {
 
     pub fn show_error(&self, msg: &str) -> Result<()> {
         eprintln!("{msg}");
-        let tmp =
-            std::env::temp_dir().join(format!("tmux-worktrees-err-{}.txt", std::process::id()));
+        let tmp = std::env::temp_dir().join(format!("senkai-err-{}.txt", std::process::id()));
         let _ = std::fs::write(&tmp, format!("{msg}\n"));
         let quoted = senkai_core::shell_quoter::ShellQuoter::quote(tmp.to_string_lossy().as_ref());
         let cmd = format!(
@@ -117,12 +116,7 @@ impl TmuxExecutor {
         if self.run(&["display-popup", "-E", "-h", "20", &cmd]).is_ok() {
             return Ok(());
         }
-        let _ = self.run(&[
-            "display-message",
-            "-d",
-            "5000",
-            &format!("tmux-worktrees: {msg}"),
-        ]);
+        let _ = self.run(&["display-message", "-d", "5000", &format!("senkai: {msg}")]);
         Ok(())
     }
 
@@ -160,7 +154,7 @@ impl TmuxExecutor {
     }
 }
 
-impl TmuxPort for TmuxExecutor {
+impl MultiplexerPort for TmuxExecutor {
     fn show_error(&self, msg: &str) -> Result<()> {
         self.show_error(msg)
     }
