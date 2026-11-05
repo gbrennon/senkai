@@ -6,7 +6,7 @@ body = """
 {% endif %}
 {% for group, commits in commits | group_by(attribute=\"group\") %}
 ### {{ group | upper_first }}
-{% for commit in commits %}- {{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end=\"\") }}](https://codeberg.org/gbrennon/tmux-worktrees/commit/{{ commit.id }}))
+{% for commit in commits %}- {{ commit.message | upper_first }} ([{{ commit.id | truncate(length=7, end=\"\") }}](https://codeberg.org/gbrennon/senkai/commit/{{ commit.id }}))
 {% endfor %}
 {% endfor %}
 """
@@ -32,4 +32,4 @@ tag_pattern = 'v?[0-9]+\.[0-9]+(\.[0-9]+)?'
 
 [remote.github]
 owner = "gbrennon"
-repo = "tmux-worktrees"
+repo = "senkai"

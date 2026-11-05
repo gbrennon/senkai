@@ -46,7 +46,7 @@ jobs:
           forgejo-api-url: ${{ github.api_url }}
           forgejo-repository: ${{ github.repository }}
           forgejo-token: ${{ github.token }}
-          github-repository: gbrennon/tmux-worktrees
+          github-repository: gbrennon/senkai
           github-token: ${{ secrets.GH_RELEASE_TOKEN }}
           cargo-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -85,7 +85,7 @@ jobs:
         uses: ./.forgejo/actions/create-release
         with:
           api-url: https://api.github.com
-          repository: gbrennon/tmux-worktrees
+          repository: gbrennon/senkai
           token: ${{ secrets.GH_RELEASE_TOKEN }}
           auth-scheme: Bearer
           merge-commit-sha: ${{ github.event.pull_request.merge_commit_sha }}

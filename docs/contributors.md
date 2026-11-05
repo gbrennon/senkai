@@ -4,7 +4,7 @@
 
 To clone this repository, use:
 ```bash
- git clone https://codeberg.org/gbrennon/tmux-worktrees.git
+ git clone https://codeberg.org/gbrennon/senkai.git
 ```
 
 ## Prerequisites

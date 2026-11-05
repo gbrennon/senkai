@@ -1,4 +1,4 @@
-# tmux-worktrees
+# Senkai
 
 A tmux plugin to create, switch between, and clean up
 [git worktrees][git-worktree] without leaving your terminal.
@@ -26,7 +26,7 @@ then choose Yes or No.
 Add to `~/.tmux.conf` and reload (`prefix + I`):
 
 ```tmux
-set -g @plugin 'gbrennon/tmux-worktrees'
+set -g @plugin 'gbrennon/senkai'
 ```
 
 Also needs tmux >= 3.2, git >= 2.28, bash >= 4.0, `curl`, and `tar`.

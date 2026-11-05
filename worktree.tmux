@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# tmux-worktrees orchestrator
+# Senkai orchestrator
 # This script is sourced by tpm/tpack and will build/install the Rust binary on first use
 
 set -euo pipefail
 
 CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLUGIN_NAME="tmux-worktrees"
+PLUGIN_NAME="senkai"
 PLUGIN_DIR="$HOME/.tmux/plugins/$PLUGIN_NAME"
 BINARY_NAME="sk"
 CARGO_BIN_DIR="${CARGO_HOME:-$HOME/.cargo}/bin"
@@ -14,7 +14,7 @@ BINARY_PATH=""
 REPO_DIR="$CURRENT_DIR"
 CARGO_MANIFEST="$REPO_DIR/Cargo.toml"
 
-RELEASE_REPO="gbrennon/tmux-worktrees"
+RELEASE_REPO="gbrennon/senkai"
 RELEASE_API="https://api.github.com/repos/$RELEASE_REPO/releases/latest"
 RELEASE_DOWNLOAD_BASE="https://github.com/$RELEASE_REPO/releases/download"
 

@@ -1,4 +1,4 @@
-# tmux-worktrees lefthook configuration
+# Senkai lefthook configuration
 # Install: pipx install lefthook && lefthook install
 
 pre-commit:
