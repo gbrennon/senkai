@@ -13,7 +13,7 @@ fail() {
 make_fixture() {
   local fixture="$1"
   mkdir -p "$fixture/bin" "$fixture/src"
-  cp "$ROOT/worktree.tmux" "$fixture/worktree.tmux"
+  cp "$ROOT/senkai.tmux" "$fixture/senkai.tmux"
   printf '[package]\nname = "senkai"\nversion = "0.1.0"\n' > "$fixture/Cargo.toml"
   printf 'fn main() {}\n' > "$fixture/src/main.rs"
 
@@ -66,7 +66,7 @@ run_installer() {
   (cd "$fixture" && HOME="$fixture/home" PATH="$test_path" \
     CARGO_LOG="$fixture/cargo.log" ARCHIVE_SOURCE="$fixture/archive" \
     TMUX_LOG="$fixture/tmux.log" SSH_AUTH_SOCK="$fixture/agent.sock" \
-    bash "$fixture/worktree.tmux")
+    bash "$fixture/senkai.tmux")
 }
 
 fixture="$TEMP_DIR/installed"

@@ -1,7 +1,7 @@
 use fuzzy_matcher::{FuzzyMatcher, clangd::ClangdMatcher};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Position},
-    style::{Color, Style},
+    style::{Color, Modifier, Style},
     text::Text,
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
@@ -106,18 +106,18 @@ impl RatatuiSelector {
                     .split(area);
                 let input_text = format!("{prompt}{}", selector.query());
                 let input = Paragraph::new(input_text.clone())
-                    .style(Style::default().fg(Color::White))
+                    .style(Style::default().fg(Color::Reset))
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .border_style(Style::default().fg(Color::Cyan)),
+                            .border_style(Style::default().fg(Color::Reset)),
                     );
                 let hint_text = if selector.is_multi_select() {
                     format!("{header} Space to toggle, Enter to continue, Esc to cancel")
                 } else {
                     header.to_string()
                 };
-                let hint = Paragraph::new(hint_text).style(Style::default().fg(Color::DarkGray));
+                let hint = Paragraph::new(hint_text).style(Style::default().fg(Color::Reset));
                 f.render_widget(input, chunks[0]);
                 f.render_widget(hint, chunks[1]);
 
@@ -142,14 +142,14 @@ impl RatatuiSelector {
                 let mut ls = ListState::default();
                 ls.select(Some(selector.selected_index()));
                 let list = List::new(list_items)
-                    .style(Style::default().fg(Color::White))
+                    .style(Style::default().fg(Color::Reset))
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .border_style(Style::default().fg(Color::Blue)),
+                            .border_style(Style::default().fg(Color::Reset)),
                     )
                     .highlight_symbol("> ")
-                    .highlight_style(Style::default().fg(Color::Yellow).bg(Color::DarkGray));
+                    .highlight_style(Style::default().add_modifier(Modifier::REVERSED));
                 f.render_stateful_widget(list, chunks[2], &mut ls);
             })?;
 
