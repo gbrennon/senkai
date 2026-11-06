@@ -7,9 +7,11 @@ support for additional multiplexers is planned.
 
 ## About the name
 
-*Senkai* (旋回) is a Japanese word for circling, rotation, revolution, or a
-banking turn. It reflects how the tool rotates your tmux workspace between Git
-worktrees, so you can move between branches without leaving the terminal.
+*Senkai* draws inspiration from *Bleach*'s **Senkaimon** (穿界門), the
+World-Piercing Gate that connects worlds. That influence fits a tool that moves
+between worktree environments. The spelling also echoes *senkai* (旋回), a
+Japanese word for circling, rotation, revolution, or a banking turn—an apt
+metaphor for rotating your tmux workspace between Git worktrees.
 
 ## Features
 
