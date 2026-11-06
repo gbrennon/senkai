@@ -1,3 +1,5 @@
+pub mod theme;
+
 pub mod loading_port;
 pub mod ratatui_loading;
 pub mod ratatui_selector;
