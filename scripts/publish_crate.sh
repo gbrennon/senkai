@@ -17,12 +17,37 @@ if [[ "$manifest_version" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
-# Publish a single crate, retrying until the crates.io index has
-# propagated the previously published dependency. First-time publication
-# of interdependent crates fails if the dependent's index entry is not
-# yet queryable.
+# Report whether $crate is already published at $EXPECTED_VERSION on crates.io.
+# Exits nonzero on network errors so set -e aborts rather than skipping blindly.
+already_published() {
+  local crate="$1"
+  local code
+  code="$(RELEASE_VERSION="$EXPECTED_VERSION" python3 - "$crate" <<'PY'
+import os, sys, urllib.error, urllib.request
+crate = sys.argv[1]
+version = os.environ["RELEASE_VERSION"]
+try:
+    urllib.request.urlopen(f"https://crates.io/api/v1/crates/{crate}/{version}", timeout=10)
+    print(200)
+except urllib.error.HTTPError as e:
+    print(e.code)
+except Exception as exc:
+    print(0, file=sys.stderr)
+    sys.exit(1)
+PY
+)"
+  [[ "$code" == "200" ]] && return 0
+  [[ "$code" == "404" ]] && return 1
+  printf 'crates.io check for %s returned %s, aborting\n' "$crate" "$code" >&2
+  exit 1
+}
+
 publish_crate() {
   local crate="$1"
+  if already_published "$crate"; then
+    printf 'Skipping %s: already published at %s\n' "$crate" "$EXPECTED_VERSION"
+    return 0
+  fi
   local attempt=1
   local max_attempts="${PUBLISH_MAX_ATTEMPTS:-5}"
   local delay="${PUBLISH_RETRY_DELAY:-20}"
