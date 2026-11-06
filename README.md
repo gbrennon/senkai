@@ -1,7 +1,13 @@
-# tmux-worktrees
+# Senkai
 
 A tmux plugin to create, switch between, and clean up
 [git worktrees][git-worktree] without leaving your terminal.
+
+## About the name
+
+*Senkai* (旋回) is a Japanese word for circling, rotation, revolution, or a
+banking turn. It reflects how the tool rotates your tmux workspace between Git
+worktrees, so you can move between branches without leaving the terminal.
 
 ## Features
 
@@ -26,7 +32,7 @@ then choose Yes or No.
 Add to `~/.tmux.conf` and reload (`prefix + I`):
 
 ```tmux
-set -g @plugin 'gbrennon/tmux-worktrees'
+set -g @plugin 'gbrennon/senkai'
 ```
 
 Also needs tmux >= 3.2, git >= 2.28, bash >= 4.0, `curl`, and `tar`.
@@ -35,14 +41,15 @@ SSH authentication uses the agent available when the plugin is loaded. The
 plugin persists `SSH_AUTH_SOCK` into the invoking tmux session environment so
 Git fetches from worktree windows reuse your loaded SSH keys instead of
 prompting for a password. If you start or restart your agent later, reload the
-plugin from a shell with the agent exported (or source `worktree.tmux` again)
+plugin from a shell with the agent exported (or source `senkai.tmux` again)
 to refresh the session socket path.
 
-If `sk` is already installed in `PATH` (for example with Cargo or
-from a release package), TPM, tpack, and direct execution use that CLI
-directly. If tmux's `PATH` does not include it, the plugin also checks
-`~/.cargo/bin`, `~/.local/bin`, `/usr/local/bin`, and `/usr/bin` before falling
-back to the Linux x86_64 release binary or a Cargo source build.
+Senkai's command-line interface is `sk`. If `sk` is already installed in
+`PATH` (for example with Cargo or from a release package), TPM, tpack, and
+direct execution use that CLI directly. If tmux's `PATH` does not include it,
+the plugin also checks `~/.cargo/bin`, `~/.local/bin`, `/usr/local/bin`, and
+`/usr/bin` before falling back to the Linux x86_64 release binary or a Cargo
+source build.
 
 ---
 

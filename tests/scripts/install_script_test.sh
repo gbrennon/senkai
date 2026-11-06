@@ -13,7 +13,7 @@ fail() {
 make_fixture() {
   local fixture="$1"
   mkdir -p "$fixture/bin" "$fixture/src"
-  cp "$ROOT/worktree.tmux" "$fixture/worktree.tmux"
+  cp "$ROOT/senkai.tmux" "$fixture/senkai.tmux"
   printf '[package]\nname = "senkai"\nversion = "0.1.0"\n' > "$fixture/Cargo.toml"
   printf 'fn main() {}\n' > "$fixture/src/main.rs"
 
@@ -66,7 +66,7 @@ run_installer() {
   (cd "$fixture" && HOME="$fixture/home" PATH="$test_path" \
     CARGO_LOG="$fixture/cargo.log" ARCHIVE_SOURCE="$fixture/archive" \
     TMUX_LOG="$fixture/tmux.log" SSH_AUTH_SOCK="$fixture/agent.sock" \
-    bash "$fixture/worktree.tmux")
+    bash "$fixture/senkai.tmux")
 }
 
 fixture="$TEMP_DIR/installed"
@@ -76,7 +76,7 @@ printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/bin/sk"
 chmod +x "$fixture/bin/sk"
 run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite installed CLI'
-[[ ! -e "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] \
+[[ ! -e "$fixture/home/.tmux/plugins/senkai/sk" ]] \
   || fail 'Plugin copied a second binary despite installed CLI'
 grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/bin/sk choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not use installed CLI'
@@ -90,7 +90,7 @@ printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.cargo/bin/sk"
 chmod +x "$fixture/home/.cargo/bin/sk"
 run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite default-path CLI'
-[[ ! -e "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] \
+[[ ! -e "$fixture/home/.tmux/plugins/senkai/sk" ]] \
   || fail 'Plugin copied a second binary despite default-path CLI'
 grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.cargo/bin/sk choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not use default-path CLI'
@@ -100,17 +100,17 @@ grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.cargo/bin/sk clean
 fixture="$TEMP_DIR/plugin-path"
 make_fixture "$fixture"
 mkdir -p "$fixture/archive" "$fixture/home/.cargo/bin" \
-  "$fixture/home/.tmux/plugins/tmux-worktrees"
+  "$fixture/home/.tmux/plugins/senkai"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.cargo/bin/sk"
-printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.tmux/plugins/tmux-worktrees/sk"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/home/.tmux/plugins/senkai/sk"
 chmod +x "$fixture/home/.cargo/bin/sk" \
-  "$fixture/home/.tmux/plugins/tmux-worktrees/sk"
-TEST_PATH="$fixture/home/.tmux/plugins/tmux-worktrees:$fixture/bin:/usr/bin:/bin" \
+  "$fixture/home/.tmux/plugins/senkai/sk"
+TEST_PATH="$fixture/home/.tmux/plugins/senkai:$fixture/bin:/usr/bin:/bin" \
   run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite PATH CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.tmux/plugins/tmux-worktrees/sk choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.tmux/plugins/senkai/sk choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not prefer PATH CLI over Cargo default path'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.tmux/plugins/tmux-worktrees/sk cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.tmux/plugins/senkai/sk cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not prefer PATH CLI over Cargo default path'
 
 fixture="$TEMP_DIR/download"
@@ -119,7 +119,7 @@ mkdir -p "$fixture/archive" "$fixture/home"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/archive/sk"
 chmod +x "$fixture/archive/sk"
 run_installer "$fixture"
-[[ -x "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] || fail 'GitHub asset was not installed'
+[[ -x "$fixture/home/.tmux/plugins/senkai/sk" ]] || fail 'GitHub asset was not installed'
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite successful asset download'
 grep -Fq -- "set-environment -t test-session SSH_AUTH_SOCK $fixture/agent.sock" "$fixture/tmux.log" \
   || fail 'SSH agent socket was not persisted to the tmux session'
@@ -130,7 +130,7 @@ mkdir -p "$fixture/archive" "$fixture/home"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$fixture/archive/sk"
 chmod +x "$fixture/archive/sk"
 CURL_FAIL_DOWNLOAD=true run_installer "$fixture"
-[[ -x "$fixture/home/.tmux/plugins/tmux-worktrees/sk" ]] || fail 'source fallback did not install binary'
+[[ -x "$fixture/home/.tmux/plugins/senkai/sk" ]] || fail 'source fallback did not install binary'
 grep -q 'build --release' "$fixture/cargo.log" || fail 'source fallback did not invoke cargo build'
 grep -Fq -- "set-environment -t test-session SSH_AUTH_SOCK $fixture/agent.sock" "$fixture/tmux.log" \
   || fail 'SSH agent socket was not persisted during source fallback'

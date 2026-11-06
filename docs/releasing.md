@@ -28,7 +28,7 @@ Configure these secrets in the Codeberg repository:
 
 - `CARGO_REGISTRY_TOKEN`: crates.io publishing token.
 - `GH_RELEASE_TOKEN`: GitHub token with Contents write permission to create
-  releases and upload assets in `gbrennon/tmux-worktrees`.
+  releases and upload assets in `gbrennon/senkai`.
 
 The Forgejo-provided `${{ github.token }}` is used for Codeberg tags and
 releases. Configure Codeberg Actions authorization so this built-in token can

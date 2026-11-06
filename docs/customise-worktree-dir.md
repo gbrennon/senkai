@@ -15,5 +15,5 @@ are discovered from Git even when they are located elsewhere.
 Set this **before** the plugin line in `~/.tmux.conf`:
 
 ```tmux
-set -g @plugin 'gbrennon/tmux-worktrees'
+set -g @plugin 'gbrennon/senkai'
 ```

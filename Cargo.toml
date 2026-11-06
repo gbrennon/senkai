@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 description = "A tmux plugin for creating, switching between, and cleaning up Git worktrees"
 readme = "README.md"
-homepage = "https://codeberg.org/gbrennon/tmux-worktrees"
+homepage = "https://codeberg.org/gbrennon/senkai"
 license = "MIT"
-repository = "https://codeberg.org/gbrennon/tmux-worktrees"
+repository = "https://codeberg.org/gbrennon/senkai"
 keywords = ["tmux", "git", "worktree", "terminal", "plugin"]
 categories = ["command-line-utilities", "development-tools"]
 
