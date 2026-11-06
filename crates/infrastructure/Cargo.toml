@@ -6,6 +6,10 @@ description = "Infrastructure adapters for senkai"
 
 [lib]
 path = "src/lib.rs"
+readme = "../../README.md"
+homepage = "https://codeberg.org/gbrennon/senkai"
+license = "MIT"
+repository = "https://codeberg.org/gbrennon/senkai"
 
 [dependencies]
 senkai-core = { path = "../core", version = "0.1.0" }
@@ -13,3 +17,4 @@ senkai-core = { path = "../core", version = "0.1.0" }
 
 [dev-dependencies]
 libc = "0.2"
+
