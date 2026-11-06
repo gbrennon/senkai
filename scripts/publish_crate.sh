@@ -17,11 +17,35 @@ if [[ "$manifest_version" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
+# Publish a single crate, retrying until the crates.io index has
+# propagated the previously published dependency. First-time publication
+# of interdependent crates fails if the dependent's index entry is not
+# yet queryable.
+publish_crate() {
+  local crate="$1"
+  local attempt=1
+  local max_attempts="${PUBLISH_MAX_ATTEMPTS:-5}"
+  local delay="${PUBLISH_RETRY_DELAY:-20}"
+  while [[ $attempt -le $max_attempts ]]; do
+    if cargo publish --locked -p "$crate"; then
+      return 0
+    fi
+    if [[ $attempt -lt $max_attempts ]]; then
+      printf 'Publish %s attempt %d/%d failed, retrying in %ds...\n' \
+        "$crate" "$attempt" "$max_attempts" "$delay" >&2
+      sleep "$delay"
+    fi
+    attempt=$((attempt + 1))
+  done
+  printf 'Publish %s failed after %d attempts\n' "$crate" "$max_attempts" >&2
+  return 1
+}
+
 # Publish workspace members in dependency order: core first, then
 # infrastructure and presentation (which depend on core), then the root
 # crate (which depends on all three). crates.io rejects path dependencies,
 # so each member must be published explicitly.
-cargo publish --locked -p senkai-core
-cargo publish --locked -p senkai-infrastructure
-cargo publish --locked -p senkai-presentation
-cargo publish --locked -p senkai
+publish_crate senkai-core
+publish_crate senkai-infrastructure
+publish_crate senkai-presentation
+publish_crate senkai

@@ -72,13 +72,15 @@ jobs:
         uses: ./.forgejo/actions/generate-release-notes
 
       - name: Create Codeberg release
+        id: codeberg-release
         uses: ./.forgejo/actions/create-release
+      - name: Upload Codeberg release asset
+        uses: ./.forgejo/actions/upload-release-asset
         with:
-          api-url: ${{ github.api_url }}
-          repository: ${{ github.repository }}
-          token: ${{ github.token }}
+          upload-url: ${{ steps.codeberg-release.outputs.upload-url }}
           auth-scheme: token
-          version: ${{ steps.release.outputs.version }}
+          token: ${{ github.token }}
+          asset: ${{ steps.asset.outputs.asset }}
 
       - name: Create GitHub release
         id: github-release
