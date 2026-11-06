@@ -3,12 +3,12 @@ name = "senkai-presentation"
 version = "0.1.0"
 edition = "2024"
 description = "Presentation layer (CLI + TUI) for senkai"
+license = "MIT"
 
 [lib]
 path = "src/lib.rs"
 readme = "../../README.md"
 homepage = "https://codeberg.org/gbrennon/senkai"
-license = "MIT"
 repository = "https://codeberg.org/gbrennon/senkai"
 
 [dependencies]
