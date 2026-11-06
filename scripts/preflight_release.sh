@@ -75,7 +75,14 @@ probe_identity GitHub "${GITHUB_API_URL:-https://api.github.com}" \
 probe_repository_write_access GitHub "${GITHUB_API_URL:-https://api.github.com}" \
   "$GITHUB_REPOSITORY" "$GH_RELEASE_TOKEN" Bearer
 
-cargo package --locked
-cargo publish --dry-run --locked
+cargo package --locked -p senkai-core
+cargo publish --dry-run --locked -p senkai-core
+cargo package --locked -p senkai-infrastructure
+cargo publish --dry-run --locked -p senkai-infrastructure
+cargo package --locked -p senkai-presentation
+cargo publish --dry-run --locked -p senkai-presentation
+cargo package --locked -p senkai
+cargo publish --dry-run --locked -p senkai
 printf 'Cargo package and publish dry-run: PASS\n'
+
 printf 'Note: crates.io token permission is confirmed by the real cargo publish step.\n'
