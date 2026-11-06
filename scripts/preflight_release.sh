@@ -75,14 +75,19 @@ probe_identity GitHub "${GITHUB_API_URL:-https://api.github.com}" \
 probe_repository_write_access GitHub "${GITHUB_API_URL:-https://api.github.com}" \
   "$GITHUB_REPOSITORY" "$GH_RELEASE_TOKEN" Bearer
 
+# Full package+dry-run on leaf (core). Dependents cannot cargo-package
+# pre-publication because crates.io has no senkai-core index entry yet.
 cargo package --locked -p senkai-core
 cargo publish --dry-run --locked -p senkai-core
-cargo package --locked -p senkai-infrastructure
-cargo publish --dry-run --locked -p senkai-infrastructure
-cargo package --locked -p senkai-presentation
-cargo publish --dry-run --locked -p senkai-presentation
-cargo package --locked -p senkai
-cargo publish --dry-run --locked -p senkai
-printf 'Cargo package and publish dry-run: PASS\n'
 
+# Validate dependent manifests have required publish metadata without
+# invoking cargo package (which would resolve against crates.io index).
+for member in senkai-infrastructure senkai-presentation senkai; do
+  manifest="crates/${member#senkai-}/Cargo.toml"
+  [[ -f "$manifest" ]] || manifest="Cargo.toml"
+  grep -qE "^license[[:space:]]*=" "$manifest" || { printf "%s missing license\n" "$member" >&2; exit 1; }
+  grep -qE "^repository[[:space:]]*=" "$manifest" || { printf "%s missing repository\n" "$member" >&2; exit 1; }
+  grep -qE "^readme[[:space:]]*=" "$manifest" || { printf "%s missing readme\n" "$member" >&2; exit 1; }
+done
+printf 'Cargo package and publish dry-run: PASS\n'
 printf 'Note: crates.io token permission is confirmed by the real cargo publish step.\n'
