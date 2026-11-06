@@ -50,8 +50,15 @@ while (($#)); do
     *) shift ;;
   esac
 done
-printf '%s\n' '{"login":"smoke","permissions":{"push":true}}' > "$output"
-printf '200'
+# Return 404 for crates.io version-check URLs so the publish script
+# does not treat crates as already published under test.
+if [[ "$url" == *crates.io* ]]; then
+  printf '{"errors":[{"detail":"not found"}]}' > "$output"
+  printf '404'
+else
+  printf '%s\n' '{"login":"smoke","permissions":{"push":true}}' > "$output"
+  printf '200'
+fi
 EOF
 cat > "$TEMP_DIR/bin/jq" <<'EOF'
 #!/usr/bin/env bash

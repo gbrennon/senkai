@@ -21,27 +21,19 @@ fi
 # Exits nonzero on network errors so set -e aborts rather than skipping blindly.
 already_published() {
   local crate="$1"
-  local code
-  code="$(RELEASE_VERSION="$EXPECTED_VERSION" python3 - "$crate" <<'PY'
-import os, sys, urllib.error, urllib.request
-crate = sys.argv[1]
-version = os.environ["RELEASE_VERSION"]
-try:
-    urllib.request.urlopen(f"https://crates.io/api/v1/crates/{crate}/{version}", timeout=10)
-    print(200)
-except urllib.error.HTTPError as e:
-    print(e.code)
-except Exception as exc:
-    print(0, file=sys.stderr)
-    sys.exit(1)
-PY
-)"
-  [[ "$code" == "200" ]] && return 0
-  [[ "$code" == "404" ]] && return 1
-  printf 'crates.io check for %s returned %s, aborting\n' "$crate" "$code" >&2
-  exit 1
+  local status
+  status="$(curl --silent --show-error --request GET \
+    --url "https://crates.io/api/v1/crates/${crate}/${EXPECTED_VERSION}" \
+    --output /dev/null --write-out '%{http_code}')"
+  if [[ "$status" == "200" ]]; then
+    return 0
+  elif [[ "$status" == "404" ]]; then
+    return 1
+  else
+    printf 'crates.io check for %s returned %s, aborting\n' "$crate" "$status" >&2
+    exit 1
+  fi
 }
-
 publish_crate() {
   local crate="$1"
   if already_published "$crate"; then
