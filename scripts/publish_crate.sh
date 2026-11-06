@@ -17,4 +17,11 @@ if [[ "$manifest_version" != "$EXPECTED_VERSION" ]]; then
   exit 1
 fi
 
-cargo publish --locked
+# Publish workspace members in dependency order: core first, then
+# infrastructure and presentation (which depend on core), then the root
+# crate (which depends on all three). crates.io rejects path dependencies,
+# so each member must be published explicitly.
+cargo publish --locked -p senkai-core
+cargo publish --locked -p senkai-infrastructure
+cargo publish --locked -p senkai-presentation
+cargo publish --locked -p senkai

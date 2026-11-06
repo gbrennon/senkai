@@ -6,9 +6,14 @@ description = "Presentation layer (CLI + TUI) for senkai"
 
 [lib]
 path = "src/lib.rs"
+readme = "../../README.md"
+homepage = "https://codeberg.org/gbrennon/senkai"
+license = "MIT"
+repository = "https://codeberg.org/gbrennon/senkai"
 
 [dependencies]
-senkai-core = { path = "../core" }
+senkai-core = { path = "../core", version = "0.1.0" }
+
 clap = { version = "4", features = ["derive"] }
 crossterm = "0.29"
 ratatui = "0.30"
@@ -17,3 +22,4 @@ throbber-widgets-tui = "0.11.1"
 
 [dev-dependencies]
 tempfile = "3.0"
+

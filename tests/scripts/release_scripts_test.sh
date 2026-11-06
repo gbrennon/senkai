@@ -77,7 +77,41 @@ PATH="$TEMP_DIR/bin:$PATH" \
   VERSION=v0.1.0 \
   bash "$SCRIPTS/preflight_release.sh" >/dev/null
 
-grep -qx 'package --locked' "$TEMP_DIR/cargo.log" || fail 'cargo package preflight did not run'
-grep -qx 'publish --dry-run --locked' "$TEMP_DIR/cargo.log" || \
-  fail 'cargo publish dry-run preflight did not run'
+# Verify preflight: core fully dry-runs; dependents manifest-only
+grep -qx 'package --locked -p senkai-core' "$TEMP_DIR/cargo.log" || fail 'core package did not run'
+grep -qx 'publish --dry-run --locked -p senkai-core' "$TEMP_DIR/cargo.log" || fail 'core publish dry-run did not run'
+# Verify dependent manifests carry required publish metadata
+grep -qx '^license = "MIT"' "$ROOT/crates/infrastructure/Cargo.toml" || fail 'infrastructure missing license'
+grep -qx '^repository = "https://codeberg.org/gbrennon/senkai"' "$ROOT/crates/infrastructure/Cargo.toml" || fail 'infrastructure missing repository'
+grep -qx '^readme = "../../README.md"' "$ROOT/crates/infrastructure/Cargo.toml" || fail 'infrastructure missing readme'
+grep -qx '^license = "MIT"' "$ROOT/crates/presentation/Cargo.toml" || fail 'presentation missing license'
+grep -qx '^repository = "https://codeberg.org/gbrennon/senkai"' "$ROOT/crates/presentation/Cargo.toml" || fail 'presentation missing repository'
+grep -qx '^readme = "../../README.md"' "$ROOT/crates/presentation/Cargo.toml" || fail 'presentation missing readme'
+grep -qx '^license = "MIT"' "$ROOT/Cargo.toml" || fail 'root missing license'
+grep -qx '^repository = "https://codeberg.org/gbrennon/senkai"' "$ROOT/Cargo.toml" || fail 'root missing repository'
+grep -qx '^readme = "README.md"' "$ROOT/Cargo.toml" || fail 'root missing readme'
+# Dependents must NOT attempt dry-run publish on first release
+if grep -qFx 'publish --dry-run --locked -p senkai-infrastructure' "$TEMP_DIR/cargo.log"; then fail 'infrastructure should not dry-run publish'; fi
+if grep -qFx 'publish --dry-run --locked -p senkai-presentation' "$TEMP_DIR/cargo.log"; then fail 'presentation should not dry-run publish'; fi
+if grep -qFx 'publish --dry-run --locked -p senkai' "$TEMP_DIR/cargo.log"; then fail 'root should not dry-run publish'; fi
+
+# Verify the real publish script publishes all four members in order
+PATH="$TEMP_DIR/bin:$PATH" \
+RELEASE_TEST_LOG="$TEMP_DIR/publish.log" \
+  CARGO_REGISTRY_TOKEN=crate-token \
+  VERSION=v0.1.0 \
+  bash "$SCRIPTS/publish_crate.sh" >/dev/null
+
+
+
+grep -qx 'publish --locked -p senkai-core' "$TEMP_DIR/publish.log" || fail 'core publish did not run'
+grep -qx 'publish --locked -p senkai-infrastructure' "$TEMP_DIR/publish.log" || fail 'infrastructure publish did not run'
+grep -qx 'publish --locked -p senkai-presentation' "$TEMP_DIR/publish.log" || fail 'presentation publish did not run'
+grep -qx 'publish --locked -p senkai' "$TEMP_DIR/publish.log" || fail 'root publish did not run'
+
+core_line=$(grep -nFx 'publish --locked -p senkai-core' "$TEMP_DIR/publish.log" | head -n1 | cut -d: -f1)
+root_line=$(grep -nFx 'publish --locked -p senkai' "$TEMP_DIR/publish.log" | head -n1 | cut -d: -f1)
+[ "$core_line" -lt "$root_line" ] || fail 'core must publish before root'
+
 printf 'release script tests: PASS\n'
+
