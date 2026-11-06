@@ -1,7 +1,7 @@
 use fuzzy_matcher::{FuzzyMatcher, clangd::ClangdMatcher};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Position},
-    style::{Color, Modifier, Style},
+    style::Style,
     text::Text,
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
 };
@@ -72,7 +72,12 @@ impl RatatuiSelector {
         prompt: &str,
         header: &str,
     ) -> Result<SelectionResult> {
+        use super::theme::{
+            BORDER, HEADER, HIGHLIGHT_BG, HIGHLIGHT_FG, HIGHLIGHT_MODIFIER, PROMPT, TEXT,
+        };
+
         let mut terminal = backend.setup()?;
+
         terminal
             .clear()
             .map_err(|e| Error::new(format!("Failed to clear terminal: {}", e)))?;
@@ -106,18 +111,20 @@ impl RatatuiSelector {
                     .split(area);
                 let input_text = format!("{prompt}{}", selector.query());
                 let input = Paragraph::new(input_text.clone())
-                    .style(Style::default().fg(Color::Reset))
+                    .style(Style::default().fg(PROMPT))
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .border_style(Style::default().fg(Color::Reset)),
+                            .border_style(Style::default().fg(BORDER)),
                     );
+
                 let hint_text = if selector.is_multi_select() {
                     format!("{header} Space to toggle, Enter to continue, Esc to cancel")
                 } else {
                     header.to_string()
                 };
-                let hint = Paragraph::new(hint_text).style(Style::default().fg(Color::Reset));
+                let hint = Paragraph::new(hint_text).style(Style::default().fg(HEADER));
+
                 f.render_widget(input, chunks[0]);
                 f.render_widget(hint, chunks[1]);
 
@@ -142,14 +149,20 @@ impl RatatuiSelector {
                 let mut ls = ListState::default();
                 ls.select(Some(selector.selected_index()));
                 let list = List::new(list_items)
-                    .style(Style::default().fg(Color::Reset))
+                    .style(Style::default().fg(TEXT))
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .border_style(Style::default().fg(Color::Reset)),
+                            .border_style(Style::default().fg(BORDER)),
                     )
                     .highlight_symbol("> ")
-                    .highlight_style(Style::default().add_modifier(Modifier::REVERSED));
+                    .highlight_style(
+                        Style::default()
+                            .fg(HIGHLIGHT_FG)
+                            .bg(HIGHLIGHT_BG)
+                            .add_modifier(HIGHLIGHT_MODIFIER),
+                    );
+
                 f.render_stateful_widget(list, chunks[2], &mut ls);
             })?;
 
@@ -180,7 +193,9 @@ impl SelectorRunner for RatatuiSelector {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ratatui::style::{Color, Modifier};
     use ratatui::{Frame, Terminal, buffer::Buffer, layout::Position};
+
     use std::cell::RefCell;
 
     thread_local! {
@@ -370,6 +385,44 @@ mod tests {
         header: &str,
     ) -> Result<SelectionResult> {
         RatatuiSelector::run_with_backend(&FakeTerminal, selector, &[], prompt, header)
+    }
+    #[test]
+    fn selector_uses_explicit_palette_styles() {
+        reset_fake_state();
+        push_events(vec![key_esc()]);
+
+        let mut selector = Selector::new(vec!["alpha".into(), "beta".into()], false);
+        run_with_fake(&mut selector, "Worktree> ", "hint").unwrap();
+
+        let buffer = LAST_BUFFER.with(|buffer| {
+            buffer
+                .borrow()
+                .as_ref()
+                .expect("fake terminal did not draw")
+                .clone()
+        });
+
+        let find_col = |row: u16, text: &str| -> u16 {
+            let columns: Vec<char> = (0..buffer.area.width)
+                .map(|x| buffer[(x, row)].symbol().chars().next().unwrap_or(' '))
+                .collect();
+            let wanted: Vec<char> = text.chars().collect();
+            columns
+                .windows(wanted.len())
+                .position(|w| w == wanted.as_slice())
+                .expect(format!("{text} on row {row}").as_str()) as u16
+        };
+
+        let alpha_col = find_col(5, "alpha");
+        let beta_col = find_col(6, "beta");
+
+        let selected = buffer[(alpha_col, 5)].style();
+        assert_eq!(selected.fg, Some(Color::Black));
+        assert_eq!(selected.bg, Some(Color::Cyan));
+        assert!(selected.add_modifier.contains(Modifier::BOLD));
+
+        let ordinary = buffer[(beta_col, 6)].style();
+        assert_eq!(ordinary.fg, Some(Color::White));
     }
 
     #[test]
