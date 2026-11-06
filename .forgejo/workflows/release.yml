@@ -74,6 +74,12 @@ jobs:
       - name: Create Codeberg release
         id: codeberg-release
         uses: ./.forgejo/actions/create-release
+        with:
+          api-url: ${{ github.api_url }}
+          repository: ${{ github.repository }}
+          token: ${{ github.token }}
+          auth-scheme: token
+          version: ${{ steps.release.outputs.version }}
       - name: Upload Codeberg release asset
         uses: ./.forgejo/actions/upload-release-asset
         with:
