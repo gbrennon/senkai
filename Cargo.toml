@@ -38,9 +38,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-senkai-core = { path = "crates/core" }
-senkai-presentation = { path = "crates/presentation" }
-senkai-infrastructure = { path = "crates/infrastructure" }
+senkai-core = { path = "crates/core", version = "0.1.0" }
+senkai-presentation = { path = "crates/presentation", version = "0.1.0" }
+senkai-infrastructure = { path = "crates/infrastructure", version = "0.1.0" }
+
 
 [dev-dependencies]
 tempfile = "3.0"
