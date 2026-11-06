@@ -1,9 +1,12 @@
+use crate::tui::theme::TEXT;
+
 use ratatui::{
     Frame,
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::Span,
 };
+
 use throbber_widgets_tui::{BRAILLE_SIX, Throbber, ThrobberState, WhichUse};
 
 pub struct LoadingIndicator<'a> {
@@ -18,12 +21,9 @@ impl<'a> LoadingIndicator<'a> {
                 .label(label.into())
                 .throbber_set(BRAILLE_SIX)
                 .use_type(WhichUse::Spin)
-                .style(Style::default().fg(Color::Reset))
-                .throbber_style(
-                    Style::default()
-                        .fg(Color::Reset)
-                        .add_modifier(Modifier::BOLD),
-                ),
+                .style(Style::default().fg(TEXT))
+                .throbber_style(Style::default().fg(TEXT).add_modifier(Modifier::BOLD)),
+
             state: ThrobberState::default(),
         }
     }
