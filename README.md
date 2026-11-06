@@ -1,7 +1,9 @@
 # Senkai
 
-A tmux plugin to create, switch between, and clean up
-[git worktrees][git-worktree] without leaving your terminal.
+Senkai provides a command-line interface and a multiplexer plugin for creating,
+switching between, and cleaning up [git worktrees][git-worktree] without leaving
+your terminal. The current multiplexer integration targets tmux exclusively;
+support for additional multiplexers is planned.
 
 ## About the name
 
