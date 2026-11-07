@@ -10,6 +10,10 @@ inputs:
   asset:
     description: Path to the packaged release asset
     required: true
+  auth-scheme:
+    description: Authorization scheme
+    required: false
+    default: Bearer
 runs:
   using: composite
   steps:
@@ -19,4 +23,5 @@ runs:
         RELEASE_UPLOAD_URL: ${{ inputs.upload-url }}
         RELEASE_TOKEN: ${{ inputs.token }}
         RELEASE_ASSET: ${{ inputs.asset }}
+        RELEASE_AUTH_SCHEME: ${{ inputs.auth-scheme }}
       run: bash scripts/upload_release_asset.sh

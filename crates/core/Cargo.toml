@@ -3,13 +3,13 @@ name = "senkai-core"
 version = "0.1.0"
 edition = "2024"
 description = "Core domain logic for senkai"
+license = "MIT"
+homepage = "https://codeberg.org/gbrennon/senkai"
+repository = "https://codeberg.org/gbrennon/senkai"
 
 [lib]
 path = "src/lib.rs"
 readme = "../../README.md"
-homepage = "https://codeberg.org/gbrennon/senkai"
-license = "MIT"
-repository = "https://codeberg.org/gbrennon/senkai"
 
 [dependencies]
 
