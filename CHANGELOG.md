@@ -1,7 +1,7 @@
 # Changelog
 
 All notable changes to this project are documented here.
-## [0.1.0] - 2026-11-06
+## [0.1.0] - 2026-11-07
 
 
 ### Added
@@ -211,6 +211,10 @@ main.rs now only collects args, builds Ctx, and delegates. ([235e974](https://co
 - Restore loading colors ([ad9b652](https://codeberg.org/gbrennon/senkai/commit/ad9b652e24c4bba8cbb865c2a2fb037eacb29536))
 - Prefer PATH CLI before fallback paths ([30943f9](https://codeberg.org/gbrennon/senkai/commit/30943f96430f3fb18a074cb3b8d929a2eb5bc7c7))
 - Allow lowercase merge in commit message check ([c34a80a](https://codeberg.org/gbrennon/senkai/commit/c34a80ad6a39a8c55e61fb29ae81fec1670fef03))
+- Move license into package block for member crates ([03a984f](https://codeberg.org/gbrennon/senkai/commit/03a984fbfa086f0a19d8a9f14883a56b4ff949a4))
+- Place package metadata under package block in member crates ([040812e](https://codeberg.org/gbrennon/senkai/commit/040812e64749f917211f880c26a045937ba2557f))
+- Restore required inputs on Codeberg create-release step ([e0bfeef](https://codeberg.org/gbrennon/senkai/commit/e0bfeef393c2896dba3a312d4ffee71b920fcca8))
+- Probe crates.io with shell tooling instead of python ([88c8a8e](https://codeberg.org/gbrennon/senkai/commit/88c8a8e19f4a35e3cdc9d76a37e400a2bbb9aba2))
 
 
 ### Maintenance
@@ -290,6 +294,8 @@ main.rs now only collects args, builds Ctx, and delegates. ([235e974](https://co
 - Generate v0.1.0 changelog ([360527f](https://codeberg.org/gbrennon/senkai/commit/360527f38ad4517cb98bdeb01f7ce86e88b25189))
 - Exclude tag pushes from branch-name check ([d691aab](https://codeberg.org/gbrennon/senkai/commit/d691aabdd73b72ac6fd90e16e587adf14b87a32e))
 - Upload Codeberg asset and fix first-time crate publish bootstrap ([26fe63b](https://codeberg.org/gbrennon/senkai/commit/26fe63b7b2557998025cdcf9a153e4ef700a56fe))
+- Skip crates already published at release version ([0c4970c](https://codeberg.org/gbrennon/senkai/commit/0c4970caed0ac70c93450ffc838391b5a4e49cbe))
+- Update changelog ([8ee3704](https://codeberg.org/gbrennon/senkai/commit/8ee37041740bac1453e115a28f80fd10ae869287))
 
 
 ### Other
@@ -598,6 +604,9 @@ Reviewed-on: https://codeberg.org/gbrennon/senkai/pulls/76 ([08459af](https://co
 - Merge pull request 'chore: exclude tag pushes from branch-name check' (#78) from chore/check-branch-tag-filter into main
 
 Reviewed-on: https://codeberg.org/gbrennon/senkai/pulls/78 ([dc24f11](https://codeberg.org/gbrennon/senkai/commit/dc24f118cd824991a3b6e60baae753fa42e683a3))
+- Merge pull request 'chore/publish-idempotence' (#80) from chore/publish-idempotence into main
+
+Reviewed-on: https://codeberg.org/gbrennon/senkai/pulls/80 ([d0a6801](https://codeberg.org/gbrennon/senkai/commit/d0a68016c35a8930553f3c36a118798ed9fb27f1))
 
 
 ### Performance
