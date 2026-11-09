@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Senkai orchestrator
+# senkai orchestrator
 # This script is sourced by tpm/tpack and will build/install the Rust binary on first use
 
 set -euo pipefail
