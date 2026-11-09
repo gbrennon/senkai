@@ -32,7 +32,7 @@ impl MultiplexerPort for StubTmx {
         Ok(".".to_string())
     }
     fn run(&self, _a: &[&str]) -> Result<(i32, String, String)> {
-        unimplemented!()
+        Err(senkai_core::error::Error::new("tmux unavailable"))
     }
     fn kill_window(&self, _n: &str) -> Result<()> {
         unimplemented!()

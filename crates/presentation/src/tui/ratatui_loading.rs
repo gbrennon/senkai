@@ -5,16 +5,38 @@ use std::time::Duration;
 
 use crate::tui::loading_port::LoadingRunner;
 use crate::tui::terminal_backend::{RealTerminal, TerminalBackend};
+use crate::tui::theme::Theme;
 use crate::tui::widgets::loading::LoadingIndicator;
 use senkai_core::error::{Error, Result};
 
 const FRAME_DELAY: Duration = Duration::from_millis(100);
 const INPUT_IDLE_GRACE: Duration = Duration::from_millis(500);
 
-pub struct RatatuiLoading;
+pub struct RatatuiLoading {
+    theme: Theme,
+}
 
 impl RatatuiLoading {
+    pub(crate) fn new(theme: Theme) -> Self {
+        Self { theme }
+    }
+
+    #[cfg(test)]
     fn run_with_backend<B, F>(backend: B, label: String, job: F) -> Result<()>
+    where
+        B: TerminalBackend + Send + Sync + 'static,
+        B::Term: Send,
+        F: FnOnce() -> Result<()>,
+    {
+        Self::run_with_backend_and_theme(backend, label, job, Theme::default())
+    }
+
+    fn run_with_backend_and_theme<B, F>(
+        backend: B,
+        label: String,
+        job: F,
+        theme: Theme,
+    ) -> Result<()>
     where
         B: TerminalBackend + Send + Sync + 'static,
         B::Term: Send,
@@ -32,7 +54,7 @@ impl RatatuiLoading {
         let thread_done = Arc::clone(&done);
 
         let handle = thread::spawn(move || {
-            let mut indicator = LoadingIndicator::new(label);
+            let mut indicator = LoadingIndicator::with_theme(label, theme);
             let mut animation_enabled = true;
             let mut last_input_seen = None;
             let mut animation_result = Ok(());
@@ -105,7 +127,7 @@ impl RatatuiLoading {
 
 impl LoadingRunner for RatatuiLoading {
     fn run_loading(&self, label: &str, job: Box<dyn FnOnce() -> Result<()> + '_>) -> Result<()> {
-        Self::run_with_backend(RealTerminal, label.to_string(), job)
+        Self::run_with_backend_and_theme(RealTerminal, label.to_string(), job, self.theme.clone())
     }
 }
 
