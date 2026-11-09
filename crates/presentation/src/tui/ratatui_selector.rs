@@ -71,7 +71,7 @@ impl RatatuiSelector {
         Self { theme }
     }
 
-    fn run_with_backend<B: TerminalBackend>(
+    pub fn run_with_backend<B: TerminalBackend>(
         backend: &B,
         selector: &mut Selector,
         _filtered: &[usize],
@@ -404,45 +404,6 @@ mod tests {
             &Theme::default(),
         )
     }
-    #[test]
-    fn selector_uses_injected_theme_styles() {
-        reset_fake_state();
-        push_events(vec![key_esc()]);
-
-        let theme = Theme {
-            text: Color::Red,
-            border: Color::Green,
-            prompt: Color::Blue,
-            header: Color::Yellow,
-            highlight_fg: Color::White,
-            highlight_bg: Color::Magenta,
-            highlight_modifier: Modifier::BOLD,
-        };
-        let mut selector = Selector::new(vec!["alpha".into(), "beta".into()], false);
-        RatatuiSelector::run_with_backend(
-            &FakeTerminal,
-            &mut selector,
-            &[],
-            "Worktree> ",
-            "hint",
-            &theme,
-        )
-        .unwrap();
-
-        let buffer = LAST_BUFFER.with(|buffer| {
-            buffer
-                .borrow()
-                .as_ref()
-                .expect("fake terminal did not draw")
-                .clone()
-        });
-        let selected = buffer[(1, 5)].style();
-        assert_eq!(selected.fg, Some(Color::White));
-        assert_eq!(selected.bg, Some(Color::Magenta));
-        let ordinary = buffer[(1, 6)].style();
-        assert_eq!(ordinary.fg, Some(Color::Red));
-    }
-
     #[test]
     fn selector_uses_explicit_palette_styles() {
         reset_fake_state();
