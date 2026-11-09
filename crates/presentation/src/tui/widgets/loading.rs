@@ -1,4 +1,4 @@
-use crate::tui::theme::TEXT;
+use crate::tui::theme::Theme;
 
 use ratatui::{
     Frame,
@@ -16,14 +16,17 @@ pub struct LoadingIndicator<'a> {
 
 impl<'a> LoadingIndicator<'a> {
     pub fn new(label: impl Into<Span<'a>>) -> Self {
+        Self::with_theme(label, Theme::default())
+    }
+
+    pub fn with_theme(label: impl Into<Span<'a>>, theme: Theme) -> Self {
         Self {
             throbber: Throbber::default()
                 .label(label.into())
                 .throbber_set(BRAILLE_SIX)
                 .use_type(WhichUse::Spin)
-                .style(Style::default().fg(TEXT))
-                .throbber_style(Style::default().fg(TEXT).add_modifier(Modifier::BOLD)),
-
+                .style(Style::default().fg(theme.text))
+                .throbber_style(Style::default().fg(theme.text).add_modifier(Modifier::BOLD)),
             state: ThrobberState::default(),
         }
     }

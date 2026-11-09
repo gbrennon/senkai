@@ -23,3 +23,7 @@ throbber-widgets-tui = "0.11.1"
 [dev-dependencies]
 tempfile = "3.0"
 
+[[test]]
+name = "presentation"
+path = "tests/mod.rs"
+

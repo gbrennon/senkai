@@ -3,7 +3,7 @@ use std::time::Duration;
 use ratatui::{Frame, Terminal, backend::Backend};
 use senkai_core::error::{Error, Result};
 
-pub(crate) trait TerminalBackend {
+pub trait TerminalBackend {
     type Term: Backend;
 
     fn setup(&self) -> Result<Terminal<Self::Term>>;

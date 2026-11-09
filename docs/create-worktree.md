@@ -5,7 +5,7 @@
 3. An interactive terminal picker appears — type a branch name, e.g. `feat/foo`.
 4. Press `Enter`.
 
-If the branch doesn't exist yet, Senkai will:
+If the branch doesn't exist yet, senkai will:
 
 - Create a worktree (by default at `.worktrees/feat-foo` inside your repo;
   slashes in branch names are replaced with dashes for the directory),

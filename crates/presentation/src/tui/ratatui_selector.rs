@@ -62,20 +62,23 @@ use senkai_core::{
     selector::{Key, SelectionResult, Selector},
 };
 
-pub struct RatatuiSelector;
+pub struct RatatuiSelector {
+    theme: super::theme::Theme,
+}
 
 impl RatatuiSelector {
-    fn run_with_backend<B: TerminalBackend>(
+    pub(crate) fn new(theme: super::theme::Theme) -> Self {
+        Self { theme }
+    }
+
+    pub fn run_with_backend<B: TerminalBackend>(
         backend: &B,
         selector: &mut Selector,
         _filtered: &[usize],
         prompt: &str,
         header: &str,
+        theme: &super::theme::Theme,
     ) -> Result<SelectionResult> {
-        use super::theme::{
-            BORDER, HEADER, HIGHLIGHT_BG, HIGHLIGHT_FG, HIGHLIGHT_MODIFIER, PROMPT, TEXT,
-        };
-
         let mut terminal = backend.setup()?;
 
         terminal
@@ -111,11 +114,11 @@ impl RatatuiSelector {
                     .split(area);
                 let input_text = format!("{prompt}{}", selector.query());
                 let input = Paragraph::new(input_text.clone())
-                    .style(Style::default().fg(PROMPT))
+                    .style(Style::default().fg(theme.prompt))
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .border_style(Style::default().fg(BORDER)),
+                            .border_style(Style::default().fg(theme.border)),
                     );
 
                 let hint_text = if selector.is_multi_select() {
@@ -123,7 +126,7 @@ impl RatatuiSelector {
                 } else {
                     header.to_string()
                 };
-                let hint = Paragraph::new(hint_text).style(Style::default().fg(HEADER));
+                let hint = Paragraph::new(hint_text).style(Style::default().fg(theme.header));
 
                 f.render_widget(input, chunks[0]);
                 f.render_widget(hint, chunks[1]);
@@ -149,18 +152,18 @@ impl RatatuiSelector {
                 let mut ls = ListState::default();
                 ls.select(Some(selector.selected_index()));
                 let list = List::new(list_items)
-                    .style(Style::default().fg(TEXT))
+                    .style(Style::default().fg(theme.text))
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
-                            .border_style(Style::default().fg(BORDER)),
+                            .border_style(Style::default().fg(theme.border)),
                     )
                     .highlight_symbol("> ")
                     .highlight_style(
                         Style::default()
-                            .fg(HIGHLIGHT_FG)
-                            .bg(HIGHLIGHT_BG)
-                            .add_modifier(HIGHLIGHT_MODIFIER),
+                            .fg(theme.highlight_fg)
+                            .bg(theme.highlight_bg)
+                            .add_modifier(theme.highlight_modifier),
                     );
 
                 f.render_stateful_widget(list, chunks[2], &mut ls);
@@ -186,13 +189,21 @@ impl SelectorRunner for RatatuiSelector {
         prompt: &str,
         header: &str,
     ) -> Result<SelectionResult> {
-        Self::run_with_backend(&RealTerminal, selector, filtered, prompt, header)
+        Self::run_with_backend(
+            &RealTerminal,
+            selector,
+            filtered,
+            prompt,
+            header,
+            &self.theme,
+        )
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tui::theme::Theme;
     use ratatui::style::{Color, Modifier};
     use ratatui::{Frame, Terminal, buffer::Buffer, layout::Position};
 
@@ -384,7 +395,14 @@ mod tests {
         prompt: &str,
         header: &str,
     ) -> Result<SelectionResult> {
-        RatatuiSelector::run_with_backend(&FakeTerminal, selector, &[], prompt, header)
+        RatatuiSelector::run_with_backend(
+            &FakeTerminal,
+            selector,
+            &[],
+            prompt,
+            header,
+            &Theme::default(),
+        )
     }
     #[test]
     fn selector_uses_explicit_palette_styles() {
