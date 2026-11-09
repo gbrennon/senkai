@@ -54,7 +54,7 @@ impl Theme {
 
 fn tmux_option(terminal: &dyn MultiplexerPort, option: &str) -> Option<String> {
     terminal
-        .run(&["show-options", "-v", option])
+        .run(&["show-options", "-g", "-v", option])
         .ok()
         .and_then(|(status, output, _)| (status == 0).then_some(output))
 }
