@@ -71,6 +71,11 @@ impl MultiplexerPort for FakeMultiplexer {
     }
 
     fn run(&self, arguments: &[&str]) -> Result<(i32, String, String)> {
+        if !arguments.contains(&"-g") {
+            return Err(senkai_core::error::Error::new(
+                "tmux option lookup was not global",
+            ));
+        }
         let style = match arguments.last().copied() {
             Some("status-left") => self.status_left.as_ref(),
             Some("status-style") => self.status_style.as_ref(),
