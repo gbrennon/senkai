@@ -1,13 +1,15 @@
-# Senkai
+# senkai
 
-Senkai provides a command-line interface and a multiplexer plugin for creating,
+![senkai TUI screenshot](docs/screenshots/screenshot-1794245209.png)
+
+senkai provides a command-line interface and a multiplexer plugin for creating,
 switching between, and cleaning up [git worktrees][git-worktree] without leaving
 your terminal. The current multiplexer integration targets tmux exclusively;
 support for additional multiplexers is planned.
 
 ## About the name
 
-*Senkai* draws inspiration from *Bleach*'s **Senkaimon** (穿界門), the
+*senkai* draws inspiration from *Bleach*'s **Senkaimon** (穿界門), the
 World-Piercing Gate that connects worlds. That influence fits a tool that moves
 between worktree environments. The spelling also echoes *senkai* (旋回), a
 Japanese word for circling, rotation, revolution, or a banking turn—an apt
@@ -48,7 +50,7 @@ prompting for a password. If you start or restart your agent later, reload the
 plugin from a shell with the agent exported (or source `senkai.tmux` again)
 to refresh the session socket path.
 
-Senkai's command-line interface is `sk`. If `sk` is already installed in
+senkai's command-line interface is `sk`. If `sk` is already installed in
 `PATH` (for example with Cargo or from a release package), TPM, tpack, and
 direct execution use that CLI directly. If tmux's `PATH` does not include it,
 the plugin also checks `~/.cargo/bin`, `~/.local/bin`, `/usr/local/bin`, and
