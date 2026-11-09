@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Common shared functions for Senkai scripts
+# Common shared functions for senkai scripts
 # Source this file in other scripts: source "$(dirname "$0")/lib/common.sh"
 
 set -euo pipefail
