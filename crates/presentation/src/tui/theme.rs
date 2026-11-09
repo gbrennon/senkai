@@ -36,39 +36,48 @@ impl Default for Theme {
 
 impl Theme {
     pub fn from_multiplexer(terminal: &dyn MultiplexerPort) -> Self {
-        let style = terminal
-            .run(&["show-options", "-v", "status-style"])
-            .ok()
-            .and_then(|(status, output, _)| (status == 0).then_some(output));
-        Self::from_tmux_style(style.as_deref())
+        let status_left = tmux_option(terminal, "status-left");
+        if let Some(theme) = status_left.as_deref().and_then(theme_from_style) {
+            return theme;
+        }
+
+        tmux_option(terminal, "status-style")
+            .as_deref()
+            .and_then(theme_from_style)
+            .unwrap_or_default()
     }
 
     pub fn from_tmux_style(style: Option<&str>) -> Self {
-        let Some(style) = style else {
-            return Self::default();
-        };
-        let Some(foreground) = style_color(style, "fg") else {
-            return Self::default();
-        };
-        let Some(background) = style_color(style, "bg") else {
-            return Self::default();
-        };
-
-        Self {
-            text: foreground,
-            border: foreground,
-            prompt: foreground,
-            header: foreground,
-            highlight_fg: background,
-            highlight_bg: foreground,
-            ..Self::default()
-        }
+        style.and_then(theme_from_style).unwrap_or_default()
     }
+}
+
+fn tmux_option(terminal: &dyn MultiplexerPort, option: &str) -> Option<String> {
+    terminal
+        .run(&["show-options", "-v", option])
+        .ok()
+        .and_then(|(status, output, _)| (status == 0).then_some(output))
+}
+
+fn theme_from_style(style: &str) -> Option<Theme> {
+    let foreground = style_color(style, "fg")?;
+    let background = style_color(style, "bg")?;
+
+    Some(Theme {
+        text: foreground,
+        border: foreground,
+        prompt: foreground,
+        header: foreground,
+        highlight_fg: background,
+        highlight_bg: foreground,
+        ..Theme::default()
+    })
 }
 
 fn style_color(style: &str, key: &str) -> Option<Color> {
     style.split(',').find_map(|part| {
-        let (part_key, value) = part.trim().split_once('=')?;
+        let part = part.trim().strip_prefix("#[").unwrap_or(part.trim());
+        let (part_key, value) = part.split_once('=')?;
         (part_key == key)
             .then(|| parse_color(value.trim()))
             .flatten()
