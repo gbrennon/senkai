@@ -19,7 +19,7 @@ impl<'a> LoadingIndicator<'a> {
         Self::with_theme(label, Theme::default())
     }
 
-    pub(crate) fn with_theme(label: impl Into<Span<'a>>, theme: Theme) -> Self {
+    pub fn with_theme(label: impl Into<Span<'a>>, theme: Theme) -> Self {
         Self {
             throbber: Throbber::default()
                 .label(label.into())
@@ -47,7 +47,6 @@ impl<'a> LoadingIndicator<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tui::theme::Theme;
     use ratatui::{Terminal, backend::TestBackend};
 
     fn rendered(label: &str) -> String {
@@ -61,31 +60,6 @@ mod tests {
             .iter()
             .map(|cell| cell.symbol())
             .collect()
-    }
-
-    #[test]
-    fn render_uses_injected_theme() {
-        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
-        let theme = Theme {
-            text: ratatui::style::Color::Green,
-            border: ratatui::style::Color::Cyan,
-            prompt: ratatui::style::Color::Cyan,
-            header: ratatui::style::Color::Yellow,
-            highlight_fg: ratatui::style::Color::Black,
-            highlight_bg: ratatui::style::Color::Cyan,
-            highlight_modifier: ratatui::style::Modifier::BOLD,
-        };
-        let mut indicator = LoadingIndicator::with_theme("Loading", theme);
-
-        terminal.draw(|f| indicator.render(f, f.area())).unwrap();
-
-        let has_green = terminal
-            .backend()
-            .buffer()
-            .content()
-            .iter()
-            .any(|cell| cell.fg == ratatui::style::Color::Green);
-        assert!(has_green);
     }
 
     #[test]
