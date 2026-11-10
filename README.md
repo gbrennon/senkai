@@ -1,6 +1,6 @@
 # senkai
 
-![senkai TUI screenshot](docs/screenshots/screenshot-1794245209.png)
+![senkai TUI screenshot](docs/gifs/senkai-worktree-workflow.gif)
 
 senkai provides a command-line interface and a multiplexer plugin for creating,
 switching between, and cleaning up [git worktrees][git-worktree] without leaving
@@ -105,6 +105,7 @@ worktrees outside `.worktrees`; press `prefix + D` to clean up.
 | [Creating worktrees](docs/create-worktree.md) | Step-by-step walkthrough |
 | [Switching worktrees](docs/switch-worktrees.md) | Using the picker as a dashboard |
 | [Cleaning up](docs/cleanup-worktrees.md) | Removing worktrees and branches |
+| [Workflow demo](docs/worktree-workflow-demo.md) | Recorded create, resume, and removal flow |
 | [Customise keys](docs/customise-keys.md) | Change `W` / `D` bindings |
 | [Customise shell](docs/customise-shell.md) | Launch `bash`, `zsh`, `vim`, `emacs`, etc. |
 | [Customise worktree dir](docs/customise-worktree-dir.md) | Use a different worktree directory |
