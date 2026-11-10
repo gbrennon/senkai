@@ -122,7 +122,7 @@ impl TmuxExecutor {
 
     pub fn display_popup(&self, width: &str, height: &str, dir: &str, cmd: &str) -> Result<()> {
         let popup_style = self.popup_style("popup-style", "fg=white,bg=default");
-        let border_style = self.popup_style("popup-border-style", "fg=cyan");
+        let border_style = self.popup_style("popup-border-style", "fg=green");
         let args = [
             "display-popup".to_string(),
             "-E".to_string(),
