@@ -4,18 +4,30 @@ use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_presentation::tui::theme::Theme;
 
 struct FakeMultiplexer {
-    style: Option<String>,
+    status_left: Option<String>,
+    status_style: Option<String>,
 }
 
 impl FakeMultiplexer {
     fn with_style(style: &str) -> Self {
         Self {
-            style: Some(style.to_string()),
+            status_left: None,
+            status_style: Some(style.to_string()),
+        }
+    }
+
+    fn with_options(status_left: &str, status_style: &str) -> Self {
+        Self {
+            status_left: Some(status_left.to_string()),
+            status_style: Some(status_style.to_string()),
         }
     }
 
     fn unavailable() -> Self {
-        Self { style: None }
+        Self {
+            status_left: None,
+            status_style: None,
+        }
     }
 }
 
@@ -58,9 +70,18 @@ impl MultiplexerPort for FakeMultiplexer {
         unimplemented!()
     }
 
-    fn run(&self, _arguments: &[&str]) -> Result<(i32, String, String)> {
-        self.style
-            .as_ref()
+    fn run(&self, arguments: &[&str]) -> Result<(i32, String, String)> {
+        if !arguments.contains(&"-g") {
+            return Err(senkai_core::error::Error::new(
+                "tmux option lookup was not global",
+            ));
+        }
+        let style = match arguments.last().copied() {
+            Some("status-left") => self.status_left.as_ref(),
+            Some("status-style") => self.status_style.as_ref(),
+            _ => None,
+        };
+        style
             .map(|style| (0, style.clone(), String::new()))
             .ok_or_else(|| senkai_core::error::Error::new("tmux unavailable"))
     }
@@ -112,6 +133,18 @@ mod tests {
 
         let partial = Theme::from_tmux_style(Some("fg=yellow"));
         assert_eq!(partial, Theme::default());
+    }
+
+    #[test]
+    fn multiplexer_theme_uses_inline_status_left_style() {
+        let theme = Theme::from_multiplexer(&FakeMultiplexer::with_options(
+            "#[fg=colour234,bg=colour166,bold] user",
+            "bg=green,fg=black",
+        ));
+
+        assert_eq!(theme.text, Color::Indexed(234));
+        assert_eq!(theme.highlight_fg, Color::Indexed(166));
+        assert_eq!(theme.highlight_bg, Color::Indexed(234));
     }
 
     #[test]
