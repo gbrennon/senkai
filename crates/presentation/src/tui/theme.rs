@@ -36,19 +36,13 @@ impl Default for Theme {
 
 impl Theme {
     pub fn from_multiplexer(terminal: &dyn MultiplexerPort) -> Self {
-        let status_left = tmux_option(terminal, "status-left");
-        if let Some(theme) = status_left.as_deref().and_then(theme_from_style) {
-            return theme;
-        }
-
-        tmux_option(terminal, "status-style")
-            .as_deref()
-            .and_then(theme_from_style)
-            .unwrap_or_default()
+        let popup_style = tmux_option(terminal, "popup-style");
+        let popup_border_style = tmux_option(terminal, "popup-border-style");
+        theme_from_popup_styles(popup_style.as_deref(), popup_border_style.as_deref())
     }
 
     pub fn from_tmux_style(style: Option<&str>) -> Self {
-        style.and_then(theme_from_style).unwrap_or_default()
+        style.map(theme_from_style).unwrap_or_default()
     }
 }
 
@@ -59,19 +53,25 @@ fn tmux_option(terminal: &dyn MultiplexerPort, option: &str) -> Option<String> {
         .and_then(|(status, output, _)| (status == 0).then_some(output))
 }
 
-fn theme_from_style(style: &str) -> Option<Theme> {
-    let foreground = style_color(style, "fg")?;
-    let background = style_color(style, "bg")?;
+fn theme_from_popup_styles(popup_style: Option<&str>, border_style: Option<&str>) -> Theme {
+    let mut theme = popup_style.map(theme_from_style).unwrap_or_default();
+    if let Some(border) = border_style.and_then(|style| style_color(style, "fg")) {
+        theme.border = border;
+    }
+    theme
+}
 
-    Some(Theme {
-        text: foreground,
-        border: foreground,
-        prompt: foreground,
-        header: foreground,
-        highlight_fg: background,
-        highlight_bg: foreground,
-        ..Theme::default()
-    })
+fn theme_from_style(style: &str) -> Theme {
+    let mut theme = Theme::default();
+    if let Some(foreground) = style_color(style, "fg") {
+        theme.text = foreground;
+        theme.prompt = foreground;
+        theme.header = foreground;
+    }
+    if let Some(background) = style_color(style, "bg") {
+        theme.highlight_bg = background;
+    }
+    theme
 }
 
 fn style_color(style: &str, key: &str) -> Option<Color> {
@@ -86,6 +86,7 @@ fn style_color(style: &str, key: &str) -> Option<Color> {
 
 fn parse_color(value: &str) -> Option<Color> {
     match value.to_ascii_lowercase().as_str() {
+        "default" => Some(Color::Reset),
         "black" => Some(Color::Black),
         "red" => Some(Color::Red),
         "green" => Some(Color::Green),
