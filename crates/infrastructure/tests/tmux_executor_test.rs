@@ -663,7 +663,7 @@ fn display_popup_uses_application_defaults_when_tmux_styles_are_default() {
     );
     f.ok(
         "tmux",
-        "display-popup:-E:-s:fg=white,bg=default:-S:fg=cyan:-w:60%:-h:40%:-d:/tmp:echo hi",
+        "display-popup:-E:-s:fg=white,bg=default:-S:fg=green:-w:60%:-h:40%:-d:/tmp:echo hi",
         0,
         "",
         "",
