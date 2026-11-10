@@ -3,7 +3,6 @@ use std::path::Path;
 use std::process::{Command, Output};
 use std::sync::LazyLock;
 
-use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_infrastructure::command_runner::{CommandRunner, SystemCommandRunner};
 use senkai_infrastructure::tmux_executor::TmuxExecutor;
 
@@ -627,11 +626,49 @@ fn display_popup_ok() {
     let f = FakeRunner::new();
     f.ok(
         "tmux",
-        "display-popup:-E:-w:60%:-h:40%:-d:/tmp:echo hi",
+        "show-options:-gqv:popup-style",
+        0,
+        "fg=white,bg=blue",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "show-options:-gqv:popup-border-style",
+        0,
+        "fg=yellow",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "display-popup:-E:-s:fg=white,bg=blue:-S:fg=yellow:-w:60%:-h:40%:-d:/tmp:echo hi",
         0,
         "",
         "",
     );
+    executor_with(f)
+        .display_popup("60%", "40%", "/tmp", "echo hi")
+        .unwrap();
+}
+
+#[test]
+fn display_popup_uses_application_defaults_when_tmux_styles_are_default() {
+    let f = FakeRunner::new();
+    f.ok("tmux", "show-options:-gqv:popup-style", 0, "default", "");
+    f.ok(
+        "tmux",
+        "show-options:-gqv:popup-border-style",
+        0,
+        "default",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "display-popup:-E:-s:fg=white,bg=default:-S:fg=cyan:-w:60%:-h:40%:-d:/tmp:echo hi",
+        0,
+        "",
+        "",
+    );
+
     executor_with(f)
         .display_popup("60%", "40%", "/tmp", "echo hi")
         .unwrap();
