@@ -121,15 +121,10 @@ impl TmuxExecutor {
     }
 
     pub fn display_popup(&self, width: &str, height: &str, dir: &str, cmd: &str) -> Result<()> {
-        let popup_style = self.popup_style("popup-style", "fg=white,bg=default");
-        let border_style = self.popup_style("popup-border-style", "fg=green");
-        let args = [
-            "display-popup".to_string(),
-            "-E".to_string(),
-            "-s".to_string(),
-            popup_style,
-            "-S".to_string(),
-            border_style,
+        let mut args = vec!["display-popup".to_string(), "-E".to_string()];
+        Self::append_popup_style(&mut args, "-s", self.popup_style("popup-style"));
+        Self::append_popup_style(&mut args, "-S", self.popup_style("popup-border-style"));
+        args.extend([
             "-w".to_string(),
             width.to_string(),
             "-h".to_string(),
@@ -137,16 +132,22 @@ impl TmuxExecutor {
             "-d".to_string(),
             dir.to_string(),
             cmd.to_string(),
-        ];
+        ]);
         let references: Vec<&str> = args.iter().map(String::as_str).collect();
         self.run(&references)?;
         Ok(())
     }
 
-    fn popup_style(&self, option: &str, fallback: &str) -> String {
+    fn append_popup_style(args: &mut Vec<String>, flag: &str, style: Option<String>) {
+        if let Some(style) = style {
+            args.extend([flag.to_string(), style]);
+        }
+    }
+
+    fn popup_style(&self, option: &str) -> Option<String> {
         match self.run(&["show-options", "-gqv", option]) {
-            Ok((0, value, _)) if !value.is_empty() && value != "default" => value,
-            _ => fallback.to_string(),
+            Ok((0, value, _)) if !value.is_empty() && value != "default" => Some(value),
+            _ => None,
         }
     }
 
