@@ -12,12 +12,12 @@ pub struct Theme {
     pub highlight_modifier: Modifier,
 }
 
-pub(crate) const TEXT: Color = Color::White;
-pub(crate) const BORDER: Color = Color::Cyan;
-pub(crate) const PROMPT: Color = Color::Cyan;
-pub(crate) const HEADER: Color = Color::Yellow;
-pub(crate) const HIGHLIGHT_FG: Color = Color::Black;
-pub(crate) const HIGHLIGHT_BG: Color = Color::Cyan;
+pub(crate) const TEXT: Color = Color::Reset;
+pub(crate) const BORDER: Color = Color::Reset;
+pub(crate) const PROMPT: Color = Color::Reset;
+pub(crate) const HEADER: Color = Color::Reset;
+pub(crate) const HIGHLIGHT_FG: Color = Color::Reset;
+pub(crate) const HIGHLIGHT_BG: Color = Color::Reset;
 pub(crate) const HIGHLIGHT_MODIFIER: Modifier = Modifier::BOLD;
 
 impl Default for Theme {
@@ -55,9 +55,11 @@ fn tmux_option(terminal: &dyn MultiplexerPort, option: &str) -> Option<String> {
 
 fn theme_from_popup_styles(popup_style: Option<&str>, border_style: Option<&str>) -> Theme {
     let mut theme = popup_style.map(theme_from_style).unwrap_or_default();
-    if let Some(border) = border_style.and_then(|style| style_color(style, "fg")) {
-        theme.border = border;
-    }
+    let border = border_style
+        .and_then(|style| style_color(style, "fg"))
+        .unwrap_or(theme.border);
+    theme.border = border;
+    theme.highlight_bg = border;
     theme
 }
 
