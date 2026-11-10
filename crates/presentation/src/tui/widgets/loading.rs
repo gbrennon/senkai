@@ -26,7 +26,11 @@ impl<'a> LoadingIndicator<'a> {
                 .throbber_set(BRAILLE_SIX)
                 .use_type(WhichUse::Spin)
                 .style(Style::default().fg(theme.text))
-                .throbber_style(Style::default().fg(theme.text).add_modifier(Modifier::BOLD)),
+                .throbber_style(
+                    Style::default()
+                        .fg(theme.border)
+                        .add_modifier(Modifier::BOLD),
+                ),
             state: ThrobberState::default(),
         }
     }
