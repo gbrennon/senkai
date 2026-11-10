@@ -121,18 +121,33 @@ impl TmuxExecutor {
     }
 
     pub fn display_popup(&self, width: &str, height: &str, dir: &str, cmd: &str) -> Result<()> {
-        self.run(&[
-            "display-popup",
-            "-E",
-            "-w",
-            width,
-            "-h",
-            height,
-            "-d",
-            dir,
-            cmd,
-        ])?;
+        let popup_style = self.popup_style("popup-style", "fg=white,bg=default");
+        let border_style = self.popup_style("popup-border-style", "fg=cyan");
+        let args = [
+            "display-popup".to_string(),
+            "-E".to_string(),
+            "-s".to_string(),
+            popup_style,
+            "-S".to_string(),
+            border_style,
+            "-w".to_string(),
+            width.to_string(),
+            "-h".to_string(),
+            height.to_string(),
+            "-d".to_string(),
+            dir.to_string(),
+            cmd.to_string(),
+        ];
+        let references: Vec<&str> = args.iter().map(String::as_str).collect();
+        self.run(&references)?;
         Ok(())
+    }
+
+    fn popup_style(&self, option: &str, fallback: &str) -> String {
+        match self.run(&["show-options", "-gqv", option]) {
+            Ok((0, value, _)) if !value.is_empty() && value != "default" => value,
+            _ => fallback.to_string(),
+        }
     }
 
     pub fn current_pane_path(&self) -> Result<String> {
