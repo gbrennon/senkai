@@ -59,6 +59,7 @@ fn theme_from_popup_styles(popup_style: Option<&str>, border_style: Option<&str>
         .and_then(|style| style_color(style, "fg"))
         .unwrap_or(theme.border);
     theme.border = border;
+    theme.highlight_fg = theme.text;
     theme.highlight_bg = border;
     theme
 }

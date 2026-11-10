@@ -150,7 +150,7 @@ mod tests {
 
         assert_eq!(theme.text, Color::Indexed(234));
         assert_eq!(theme.border, Color::Indexed(245));
-        assert_eq!(theme.highlight_fg, Color::Reset);
+        assert_eq!(theme.highlight_fg, Color::Indexed(234));
         assert_eq!(theme.highlight_bg, Color::Indexed(245));
     }
 
