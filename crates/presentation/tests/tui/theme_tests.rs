@@ -95,12 +95,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_theme_preserves_current_palette() {
-        assert_eq!(Theme::default().text, Color::White);
-        assert_eq!(Theme::default().border, Color::Cyan);
-        assert_eq!(Theme::default().header, Color::Yellow);
-        assert_eq!(Theme::default().highlight_fg, Color::Black);
-        assert_eq!(Theme::default().highlight_bg, Color::Cyan);
+    fn default_theme_uses_tmux_default_colors() {
+        assert_eq!(Theme::default().text, Color::Reset);
+        assert_eq!(Theme::default().border, Color::Reset);
+        assert_eq!(Theme::default().prompt, Color::Reset);
+        assert_eq!(Theme::default().header, Color::Reset);
+        assert_eq!(Theme::default().highlight_fg, Color::Reset);
+        assert_eq!(Theme::default().highlight_bg, Color::Reset);
     }
 
     #[test]
@@ -108,10 +109,10 @@ mod tests {
         let theme = Theme::from_tmux_style(Some("fg=yellow,bg=blue"));
 
         assert_eq!(theme.text, Color::Yellow);
-        assert_eq!(theme.border, Color::Cyan);
+        assert_eq!(theme.border, Color::Reset);
         assert_eq!(theme.prompt, Color::Yellow);
         assert_eq!(theme.header, Color::Yellow);
-        assert_eq!(theme.highlight_fg, Color::Black);
+        assert_eq!(theme.highlight_fg, Color::Reset);
         assert_eq!(theme.highlight_bg, Color::Blue);
     }
 
@@ -119,12 +120,12 @@ mod tests {
     fn tmux_style_maps_indexed_and_rgb_colors() {
         let indexed = Theme::from_tmux_style(Some("fg=colour123,bg=colour45"));
         assert_eq!(indexed.text, Color::Indexed(123));
-        assert_eq!(indexed.highlight_fg, Color::Black);
+        assert_eq!(indexed.highlight_fg, Color::Reset);
         assert_eq!(indexed.highlight_bg, Color::Indexed(45));
 
         let rgb = Theme::from_tmux_style(Some("fg=#12abef,bg=#010203"));
         assert_eq!(rgb.text, Color::Rgb(0x12, 0xab, 0xef));
-        assert_eq!(rgb.highlight_fg, Color::Black);
+        assert_eq!(rgb.highlight_fg, Color::Reset);
         assert_eq!(rgb.highlight_bg, Color::Rgb(1, 2, 3));
     }
 
@@ -135,9 +136,9 @@ mod tests {
 
         let partial = Theme::from_tmux_style(Some("fg=yellow"));
         assert_eq!(partial.text, Color::Yellow);
-        assert_eq!(partial.border, Color::Cyan);
-        assert_eq!(partial.highlight_fg, Color::Black);
-        assert_eq!(partial.highlight_bg, Color::Cyan);
+        assert_eq!(partial.border, Color::Reset);
+        assert_eq!(partial.highlight_fg, Color::Reset);
+        assert_eq!(partial.highlight_bg, Color::Reset);
     }
 
     #[test]
@@ -149,18 +150,18 @@ mod tests {
 
         assert_eq!(theme.text, Color::Indexed(234));
         assert_eq!(theme.border, Color::Indexed(245));
-        assert_eq!(theme.highlight_fg, Color::Black);
-        assert_eq!(theme.highlight_bg, Color::Indexed(166));
+        assert_eq!(theme.highlight_fg, Color::Reset);
+        assert_eq!(theme.highlight_bg, Color::Indexed(245));
     }
 
     #[test]
     fn multiplexer_theme_uses_defaults_for_missing_popup_colors() {
         let theme = Theme::from_multiplexer(&FakeMultiplexer::with_popup_style("bg=blue"));
 
-        assert_eq!(theme.text, Color::White);
-        assert_eq!(theme.border, Color::Cyan);
-        assert_eq!(theme.highlight_fg, Color::Black);
-        assert_eq!(theme.highlight_bg, Color::Blue);
+        assert_eq!(theme.text, Color::Reset);
+        assert_eq!(theme.border, Color::Reset);
+        assert_eq!(theme.highlight_fg, Color::Reset);
+        assert_eq!(theme.highlight_bg, Color::Reset);
     }
 
     #[test]
@@ -174,8 +175,8 @@ mod tests {
         assert_eq!(theme.prompt, Color::Reset);
         assert_eq!(theme.header, Color::Reset);
         assert_eq!(theme.border, Color::Indexed(166));
-        assert_eq!(theme.highlight_fg, Color::Black);
-        assert_eq!(theme.highlight_bg, Color::Reset);
+        assert_eq!(theme.highlight_fg, Color::Reset);
+        assert_eq!(theme.highlight_bg, Color::Indexed(166));
     }
 
     #[test]
