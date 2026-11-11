@@ -144,14 +144,14 @@ mod tests {
     #[test]
     fn multiplexer_theme_uses_popup_styles() {
         let theme = Theme::from_multiplexer(&FakeMultiplexer::with_popup_styles(
-            "fg=colour234,bg=colour166",
-            "fg=colour245",
+            "fg=colour245,bg=default",
+            "fg=colour166,bg=colour234",
         ));
 
-        assert_eq!(theme.text, Color::Indexed(234));
-        assert_eq!(theme.border, Color::Indexed(245));
+        assert_eq!(theme.text, Color::Indexed(245));
+        assert_eq!(theme.border, Color::Indexed(166));
         assert_eq!(theme.highlight_fg, Color::Indexed(234));
-        assert_eq!(theme.highlight_bg, Color::Indexed(245));
+        assert_eq!(theme.highlight_bg, Color::Indexed(166));
     }
 
     #[test]
