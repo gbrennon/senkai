@@ -1,6 +1,6 @@
 # senkai
 
-![senkai TUI screenshot](docs/gifs/senkai-worktree-workflow.gif)
+![senkai TUI screenshot](docs/gifs/senkai-demo.gif)
 
 senkai provides a command-line interface and a multiplexer plugin for creating,
 switching between, and cleaning up [git worktrees][git-worktree] without leaving
