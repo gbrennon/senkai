@@ -435,8 +435,8 @@ mod tests {
         let beta_col = find_col(6, "beta");
 
         let selected = buffer[(alpha_col, 5)].style();
-        assert_eq!(selected.fg, Some(Color::Reset));
-        assert_eq!(selected.bg, Some(Color::Reset));
+        assert_eq!(selected.fg, Some(Color::White));
+        assert_eq!(selected.bg, Some(Color::Green));
         assert!(selected.add_modifier.contains(Modifier::BOLD));
 
         let ordinary = buffer[(beta_col, 6)].style();
