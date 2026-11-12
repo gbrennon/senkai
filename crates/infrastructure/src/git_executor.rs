@@ -28,6 +28,27 @@ impl GitExecutor {
         let _ = self.run_in(cwd, args);
         Ok(())
     }
+
+    pub fn default_branch(&self, cwd: &std::path::Path) -> Result<String> {
+        let remote_head = self.run_in(
+            cwd,
+            &["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+        )?;
+        if remote_head.0 == 0 && !remote_head.1.is_empty() {
+            return Ok(remote_head
+                .1
+                .strip_prefix("origin/")
+                .unwrap_or(&remote_head.1)
+                .to_string());
+        }
+        let local_head = self.run_in(cwd, &["symbolic-ref", "--short", "HEAD"])?;
+        if local_head.0 == 0 && !local_head.1.is_empty() {
+            return Ok(local_head.1);
+        }
+        Err(senkai_core::error::Error::new(
+            "Unable to determine the repository default branch",
+        ))
+    }
 }
 
 impl Default for GitExecutor {
@@ -37,6 +58,10 @@ impl Default for GitExecutor {
 }
 
 impl RepositoryPort for GitExecutor {
+    fn default_branch(&self, dir: &std::path::Path) -> Result<String> {
+        self.default_branch(dir)
+    }
+
     fn run_in(&self, dir: &std::path::Path, args: &[&str]) -> Result<(i32, String, String)> {
         self.run_in(dir, args)
     }

@@ -13,11 +13,11 @@ pub struct Theme {
 }
 
 pub(crate) const TEXT: Color = Color::Reset;
-pub(crate) const BORDER: Color = Color::Reset;
+pub(crate) const BORDER: Color = Color::Green;
 pub(crate) const PROMPT: Color = Color::Reset;
 pub(crate) const HEADER: Color = Color::Reset;
-pub(crate) const HIGHLIGHT_FG: Color = Color::Reset;
-pub(crate) const HIGHLIGHT_BG: Color = Color::Reset;
+pub(crate) const HIGHLIGHT_FG: Color = Color::White;
+pub(crate) const HIGHLIGHT_BG: Color = Color::Green;
 pub(crate) const HIGHLIGHT_MODIFIER: Modifier = Modifier::BOLD;
 
 impl Default for Theme {
@@ -36,8 +36,17 @@ impl Default for Theme {
 
 impl Theme {
     pub fn from_multiplexer(terminal: &dyn MultiplexerPort) -> Self {
-        let popup_style = tmux_option(terminal, "popup-style");
-        let popup_border_style = tmux_option(terminal, "popup-border-style");
+        if !terminal.is_inside_tmux() {
+            return Self::default();
+        }
+        let popup_style =
+            resolved_style(terminal, "@sk-popup-style", "popup-style", "status-style");
+        let popup_border_style = resolved_style(
+            terminal,
+            "@sk-popup-border-style",
+            "popup-border-style",
+            "pane-active-border-style",
+        );
         theme_from_popup_styles(popup_style.as_deref(), popup_border_style.as_deref())
     }
 
@@ -46,11 +55,25 @@ impl Theme {
     }
 }
 
+fn resolved_style(
+    terminal: &dyn MultiplexerPort,
+    override_option: &str,
+    option: &str,
+    fallback_option: &str,
+) -> Option<String> {
+    tmux_option(terminal, override_option)
+        .or_else(|| tmux_option(terminal, option))
+        .filter(|style| style != "default")
+        .or_else(|| tmux_option(terminal, fallback_option))
+        .filter(|style| style != "default")
+}
+
 fn tmux_option(terminal: &dyn MultiplexerPort, option: &str) -> Option<String> {
     terminal
-        .run(&["show-options", "-g", "-v", option])
+        .run(&["show-options", "-gqv", option])
         .ok()
         .and_then(|(status, output, _)| (status == 0).then_some(output))
+        .filter(|output| !output.is_empty())
 }
 
 fn theme_from_popup_styles(popup_style: Option<&str>, border_style: Option<&str>) -> Theme {
@@ -58,12 +81,8 @@ fn theme_from_popup_styles(popup_style: Option<&str>, border_style: Option<&str>
     let border = border_style
         .and_then(|style| style_color(style, "fg"))
         .unwrap_or(theme.border);
-    let highlight_fg = border_style
-        .and_then(|style| style_color(style, "bg"))
-        .unwrap_or(theme.text);
     theme.border = border;
-    theme.highlight_fg = highlight_fg;
-    theme.highlight_bg = border;
+    theme.highlight_fg = theme.text;
     theme
 }
 

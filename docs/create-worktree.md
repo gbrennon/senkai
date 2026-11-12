@@ -9,8 +9,7 @@ If the branch doesn't exist yet, senkai will:
 
 - Create a worktree (by default at `.worktrees/feat-foo` inside your repo;
   slashes in branch names are replaced with dashes for the directory),
-  using the configured Git default branch when available, then the current
-  branch or `main` as fallback.
+  using the default branch reported by the repository's VCS adapter.
 - Open a new tmux window named `wt-feat/foo` with your shell's
   working directory already set to that worktree.
 

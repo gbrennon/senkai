@@ -126,7 +126,7 @@ fn run_interactive_from_non_tty_uses_popup_path() {
     let root = linked_worktree_root();
     unsafe { std::env::set_var("SENKAI_ROOT", root.path()) };
     let result = cli.spawn_in_popup(&["sk".to_string(), "choose".to_string()]);
-    assert!(result.is_ok());
+    assert!(result.is_err());
     assert!(!guard.show_error_called.get());
     unsafe { std::env::remove_var("SENKAI_ROOT") };
 }
@@ -338,6 +338,25 @@ fn find_repo_root_is_idempotent() {
     let r1 = cli.find_repo_root().unwrap();
     let r2 = cli.find_repo_root().unwrap();
     assert_eq!(r1, r2);
+}
+
+#[test]
+fn find_repo_root_rejects_unmarked_configured_path() {
+    let root = tempfile::tempdir().unwrap();
+    let configured = tempfile::tempdir().unwrap();
+    let configured_path = configured.path().to_string_lossy().into_owned();
+    let mut tmux = FakeTmxTest::new(&configured_path);
+    tmux.pane_path = Some(configured_path);
+    unsafe {
+        std::env::remove_var("SENKAI_ROOT");
+        std::env::remove_var("TMUX_WORKTREES_ROOT");
+        std::env::remove_var("MAIN_PROJECT_PATH");
+    }
+    let cli = cli_default(tmux, StubGit);
+
+    let result = cli.find_repo_root_from(root.path());
+
+    assert_eq!(result.unwrap_err().to_string(), "Not in a git repository");
 }
 
 #[test]

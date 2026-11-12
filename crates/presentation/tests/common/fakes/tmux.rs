@@ -7,6 +7,9 @@ use senkai_core::ports::multiplexer_port::MultiplexerPort;
 
 pub struct StubTmx;
 impl MultiplexerPort for StubTmx {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn show_error(&self, _msg: &str) -> Result<()> {
         unimplemented!()
     }
@@ -41,6 +44,9 @@ impl MultiplexerPort for StubTmx {
 
 pub struct FakeTmxShowError;
 impl MultiplexerPort for FakeTmxShowError {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn show_error(&self, _msg: &str) -> Result<()> {
         Ok(())
     }
@@ -85,8 +91,11 @@ impl FakeTmxNonTty {
     }
 }
 impl MultiplexerPort for FakeTmxNonTty {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {
-        Ok(())
+        Err(senkai_core::error::Error::new("tmux unavailable"))
     }
     fn show_error(&self, _msg: &str) -> Result<()> {
         self.show_error_called.set(true);
@@ -120,6 +129,9 @@ impl MultiplexerPort for FakeTmxNonTty {
 
 pub struct FakeTmxCreateSuccess;
 impl MultiplexerPort for FakeTmxCreateSuccess {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn show_error(&self, _msg: &str) -> Result<()> {
         Ok(())
     }
@@ -154,6 +166,9 @@ impl MultiplexerPort for FakeTmxCreateSuccess {
 
 pub struct FakeTmxWithWindow;
 impl MultiplexerPort for FakeTmxWithWindow {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn run(&self, args: &[&str]) -> Result<(i32, String, String)> {
         match args {
             ["list-windows", "-F", "{window_name}"] => Ok((0, "wt-feat/x\n".into(), String::new())),
@@ -197,6 +212,9 @@ impl MultiplexerPort for FakeTmxWithWindow {
 
 pub struct FakeTmxNoWindow;
 impl MultiplexerPort for FakeTmxNoWindow {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn run(&self, args: &[&str]) -> Result<(i32, String, String)> {
         match args {
             ["list-windows", "-F", "{window_name}"] => {
@@ -252,6 +270,9 @@ impl FakeTmxPopupOk {
     }
 }
 impl MultiplexerPort for FakeTmxPopupOk {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn display_popup(&self, _w: &str, _h: &str, _d: &str, _c: &str) -> Result<()> {
         self.display_called.set(true);
         Ok(())
@@ -297,6 +318,9 @@ impl FakeTmxWindowFail {
     }
 }
 impl MultiplexerPort for FakeTmxWindowFail {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn show_error(&self, _msg: &str) -> Result<()> {
         self.show_error_called.set(true);
         Ok(())
@@ -361,6 +385,9 @@ impl FakeTmxTest {
     }
 }
 impl MultiplexerPort for FakeTmxTest {
+    fn is_inside_tmux(&self) -> bool {
+        true
+    }
     fn show_error(&self, msg: &str) -> Result<()> {
         self.show_error_called.set(true);
         *self.show_error_msg.borrow_mut() = msg.to_string();

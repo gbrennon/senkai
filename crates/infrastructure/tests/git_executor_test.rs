@@ -269,6 +269,56 @@ fn executor_with(runner: impl CommandRunner + 'static) -> GitExecutor {
 }
 
 #[test]
+fn default_branch_uses_origin_head() {
+    let runner = FakeRunner::new();
+    runner.ok(
+        "git",
+        "symbolic-ref:--short:refs/remotes/origin/HEAD",
+        0,
+        "origin/trunk\n",
+        "",
+    );
+
+    let result = executor_with(runner).default_branch(std::path::Path::new("."));
+
+    assert_eq!(result.unwrap(), "trunk");
+}
+
+#[test]
+fn default_branch_uses_current_branch_without_origin_head() {
+    let runner = FakeRunner::new();
+    runner.ok(
+        "git",
+        "symbolic-ref:--short:refs/remotes/origin/HEAD",
+        1,
+        "",
+        "",
+    );
+    runner.ok("git", "symbolic-ref:--short:HEAD", 0, "develop\n", "");
+
+    let result = executor_with(runner).default_branch(std::path::Path::new("."));
+
+    assert_eq!(result.unwrap(), "develop");
+}
+
+#[test]
+fn default_branch_errors_without_a_branch_reference() {
+    let runner = FakeRunner::new();
+    runner.ok(
+        "git",
+        "symbolic-ref:--short:refs/remotes/origin/HEAD",
+        1,
+        "",
+        "",
+    );
+    runner.ok("git", "symbolic-ref:--short:HEAD", 1, "", "");
+
+    let result = executor_with(runner).default_branch(std::path::Path::new("."));
+
+    assert!(result.is_err());
+}
+
+#[test]
 fn run_in_parses_successful_git_version() {
     let f = FakeRunner::new();
     f.ok("git", "--version", 0, "git version 2.54.0\n", "");

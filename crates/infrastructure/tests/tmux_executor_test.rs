@@ -312,7 +312,15 @@ mod tests {
 static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
 fn executor_with(runner: impl CommandRunner + 'static) -> TmuxExecutor {
+    TmuxExecutor::new_in_tmux(Box::new(runner))
+}
+
+fn executor_outside(runner: impl CommandRunner + 'static) -> TmuxExecutor {
     TmuxExecutor::new(Box::new(runner))
+}
+
+fn executor_with_target(runner: impl CommandRunner + 'static, target_pane: &str) -> TmuxExecutor {
+    TmuxExecutor::new_with_target(Box::new(runner), target_pane)
 }
 
 #[test]
@@ -601,6 +609,58 @@ fn select_or_create_window_resumes_existing() {
 }
 
 #[test]
+fn select_or_create_window_scopes_new_window_to_invoking_pane() {
+    let f = FakeRunner::new();
+    f.ok(
+        "tmux",
+        "list-windows:-t:%7:-F:#{window_name}",
+        0,
+        "other-window\n",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "new-window:-t:%7:-n:wt-feat-bar:-c:/tmp:bash",
+        0,
+        "",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "display-message:Created worktree: feat-bar",
+        0,
+        "",
+        "",
+    );
+    executor_with_target(f, "%7")
+        .select_or_create_window("feat-bar", "/tmp", "bash")
+        .unwrap();
+}
+
+#[test]
+fn select_or_create_window_scopes_existing_window_to_invoking_pane() {
+    let f = FakeRunner::new();
+    f.ok(
+        "tmux",
+        "list-windows:-t:%7:-F:#{window_name}",
+        0,
+        "wt-feat-bar\nomp\n",
+        "",
+    );
+    f.ok("tmux", "select-window:-t:%7:wt-feat-bar", 0, "", "");
+    f.ok(
+        "tmux",
+        "display-message:Resumed worktree: feat-bar",
+        0,
+        "",
+        "",
+    );
+    executor_with_target(f, "%7")
+        .select_or_create_window("feat-bar", "/tmp", "bash")
+        .unwrap();
+}
+
+#[test]
 fn kill_window_kills_when_present() {
     let f = FakeRunner::new();
     f.ok(
@@ -651,9 +711,16 @@ fn display_popup_ok() {
 }
 
 #[test]
-fn display_popup_uses_application_defaults_when_tmux_styles_are_default() {
+fn display_popup_uses_standard_tmux_styles_when_popup_styles_are_default() {
     let f = FakeRunner::new();
     f.ok("tmux", "show-options:-gqv:popup-style", 0, "default", "");
+    f.ok(
+        "tmux",
+        "show-options:-gqv:status-style",
+        0,
+        "bg=green,fg=black",
+        "",
+    );
     f.ok(
         "tmux",
         "show-options:-gqv:popup-border-style",
@@ -663,7 +730,60 @@ fn display_popup_uses_application_defaults_when_tmux_styles_are_default() {
     );
     f.ok(
         "tmux",
-        "display-popup:-E:-w:60%:-h:40%:-d:/tmp:echo hi",
+        "show-options:-gqv:pane-active-border-style",
+        0,
+        "fg=green",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "display-popup:-E:-s:bg=green,fg=black:-S:fg=green:-w:60%:-h:40%:-d:/tmp:echo hi",
+        0,
+        "",
+        "",
+    );
+
+    executor_with(f)
+        .display_popup("60%", "40%", "/tmp", "echo hi")
+        .unwrap();
+}
+
+#[test]
+fn display_popup_uses_application_defaults_when_tmux_styles_are_unavailable() {
+    let f = FakeRunner::new();
+    f.ok(
+        "tmux",
+        "display-popup:-E:-s:fg=default,bg=default:-S:fg=green:-w:60%:-h:40%:-d:/tmp:echo hi",
+        0,
+        "",
+        "",
+    );
+
+    executor_with(f)
+        .display_popup("60%", "40%", "/tmp", "echo hi")
+        .unwrap();
+}
+
+#[test]
+fn display_popup_uses_senkai_style_overrides() {
+    let f = FakeRunner::new();
+    f.ok(
+        "tmux",
+        "show-option:-gv:@sk-popup-style",
+        0,
+        "fg=magenta,bg=black",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "show-option:-gv:@sk-popup-border-style",
+        0,
+        "fg=yellow",
+        "",
+    );
+    f.ok(
+        "tmux",
+        "display-popup:-E:-s:fg=magenta,bg=black:-S:fg=yellow:-w:60%:-h:40%:-d:/tmp:echo hi",
         0,
         "",
         "",
@@ -680,6 +800,35 @@ fn show_error_tries_popup_then_falls_back_to_display_message() {
     f.ok("tmux", &display_popup_key("senkai-err"), 1, "", "no server");
     f.ok("tmux", &display_msg_key("senkai: test msg"), 0, "", "");
     executor_with(f).show_error("test msg").unwrap();
+}
+
+#[test]
+fn show_error_does_not_call_tmux_outside_tmux() {
+    let _guard = ENV_MUTEX.lock().unwrap();
+    let previous_tmux = std::env::var_os("TMUX");
+    let previous_tmux_pane = std::env::var_os("TMUX_PANE");
+    unsafe {
+        std::env::remove_var("TMUX");
+        std::env::remove_var("TMUX_PANE");
+    }
+    let runner = RecordingRunner::default();
+    let calls = runner.calls.clone();
+
+    executor_outside(runner)
+        .show_error("not in a repository")
+        .unwrap();
+
+    assert!(calls.lock().unwrap().is_empty());
+    unsafe {
+        match previous_tmux {
+            Some(value) => std::env::set_var("TMUX", value),
+            None => std::env::remove_var("TMUX"),
+        }
+        match previous_tmux_pane {
+            Some(value) => std::env::set_var("TMUX_PANE", value),
+            None => std::env::remove_var("TMUX_PANE"),
+        }
+    }
 }
 
 #[test]
@@ -716,6 +865,33 @@ fn display_popup_key(_txt_prefix: &str) -> String {
 
 fn display_msg_key(msg: &str) -> String {
     format!("display-message:-d:5000:{msg}")
+}
+
+#[test]
+fn current_pane_path_does_not_query_tmux_outside_tmux() {
+    let _guard = ENV_MUTEX.lock().unwrap();
+    let previous_tmux = std::env::var_os("TMUX");
+    unsafe {
+        std::env::remove_var("TMUX");
+        std::env::remove_var("TMUX_PANE");
+    }
+    let runner = RecordingRunner::default();
+    let calls = runner.calls.clone();
+    let expected = std::env::current_dir()
+        .unwrap()
+        .to_string_lossy()
+        .into_owned();
+
+    let result = executor_outside(runner).current_pane_path().unwrap();
+
+    assert_eq!(result, expected);
+    assert!(calls.lock().unwrap().is_empty());
+    unsafe {
+        match previous_tmux {
+            Some(value) => std::env::set_var("TMUX", value),
+            None => std::env::remove_var("TMUX"),
+        }
+    }
 }
 
 #[test]

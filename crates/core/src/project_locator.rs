@@ -34,19 +34,6 @@ impl ProjectLocator {
         None
     }
 
-    pub fn determine_default_branch(&self, global: &str, local: &str, current: &str) -> String {
-        if !global.is_empty() {
-            return global.to_string();
-        }
-        if !local.is_empty() {
-            return local.to_string();
-        }
-        if !current.is_empty() {
-            return current.to_string();
-        }
-        "main".to_string()
-    }
-
     pub fn ensure_worktree_directory(
         &self,
         project_root: &Path,
@@ -177,18 +164,6 @@ mod tests {
         let dir = tempdir().unwrap();
         let result = locator.by_walking(dir.path());
         assert_eq!(result, None);
-    }
-
-    #[test]
-    fn project_locator_determine_default_branch_priority() {
-        let locator = ProjectLocator;
-        assert_eq!(locator.determine_default_branch("global", "", ""), "global");
-        assert_eq!(locator.determine_default_branch("", "local", ""), "local");
-        assert_eq!(
-            locator.determine_default_branch("", "", "current"),
-            "current"
-        );
-        assert_eq!(locator.determine_default_branch("", "", ""), "main");
     }
 
     #[test]

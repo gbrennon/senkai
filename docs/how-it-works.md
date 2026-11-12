@@ -19,7 +19,13 @@
    `wt-<branch-name>` (with the original branch slashes preserved).
    The plugin checks for an existing window with that name before creating a
    new one, so you never end up with duplicates.
-5. **Cleanup safety** — the removal flow kills the tmux window first, then
-   runs `git worktree remove --force` followed by `git branch -D`. This can
-   discard uncommitted work and force-delete an unmerged branch, so review the
-   selected worktree before confirming cleanup.
+5. **Theme resolution** — inside tmux, popup and TUI colors prefer
+   Senkai-specific `@sk-popup-style` and `@sk-popup-border-style` overrides,
+   then standard tmux `popup-style` and `popup-border-style`. If those are
+   unset, Senkai derives the popup style from `status-style` and the border from
+   `pane-active-border-style`. Outside tmux, Senkai uses its default terminal
+   theme. See [Customize colors](customise-theme.md).
+6. **Cleanup safety** — the removal flow kills the tmux window first, then runs
+   `git worktree remove --force` followed by `git branch -D`. This can discard
+   uncommitted work and force-delete an unmerged branch, so review the selected
+   worktree before confirming cleanup.

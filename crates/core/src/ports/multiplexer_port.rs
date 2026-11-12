@@ -3,6 +3,7 @@ use crate::error::Result;
 /// Port for tmux operations — defines the interface the application layer
 /// depends on so infrastructure can be swapped for tests.
 pub trait MultiplexerPort {
+    fn is_inside_tmux(&self) -> bool;
     fn show_error(&self, msg: &str) -> Result<()>;
     fn display_popup(&self, width: &str, height: &str, dir: &str, cmd: &str) -> Result<()>;
     fn resolve_worktree_dir(&self) -> String;

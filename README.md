@@ -76,8 +76,9 @@ source build.
 > ```
 >
 > More details: [Customise the keys](docs/customise-keys.md).
-> You can also [change the shell](docs/customise-shell.md) that opens in new windows.
-> Or [change the worktree directory](docs/customise-worktree-dir.md).
+> You can also [change the shell](docs/customise-shell.md) that opens in new windows,
+> [change the worktree directory](docs/customise-worktree-dir.md), or
+> [customize Senkai colors](docs/customise-theme.md).
 
 ---
 
@@ -109,6 +110,7 @@ worktrees outside `.worktrees`; press `prefix + D` to clean up.
 | [Customise keys](docs/customise-keys.md) | Change `W` / `D` bindings |
 | [Customise shell](docs/customise-shell.md) | Launch `bash`, `zsh`, `vim`, `emacs`, etc. |
 | [Customise worktree dir](docs/customise-worktree-dir.md) | Use a different worktree directory |
+| [Customize colors](docs/customise-theme.md) | Match Senkai to standard tmux styles |
 | [How it works](docs/how-it-works.md) | Under-the-hood architecture |
 | [Releasing](docs/releasing.md) | Release branches and publishing |
 
