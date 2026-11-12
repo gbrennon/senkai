@@ -48,7 +48,10 @@ impl Cli {
         let (cmd, rest) = self.parse_args(args);
 
         let result = if cmd.is_interactive() && !std::io::stdin().is_terminal() {
-            self.spawn_in_popup(args)
+            match self.spawn_in_popup(args) {
+                Ok(()) => Ok(()),
+                Err(_) => self.dispatch(cmd, &rest),
+            }
         } else {
             self.dispatch(cmd, &rest)
         };
@@ -158,8 +161,7 @@ impl Cli {
         }
         cmd.push_str(" --root=");
         cmd.push_str(&ShellQuoter::quote(&root));
-        let _ = self.terminal.display_popup("60%", "50%", &root, &cmd);
-        Ok(())
+        self.terminal.display_popup("60%", "50%", &root, &cmd)
     }
 
     pub fn run_choose(&self) -> Result<()> {
@@ -412,8 +414,9 @@ impl Cli {
         }
         if let Ok(Some(v)) = self.terminal.show_environment("MAIN_PROJECT_PATH")
             && !v.is_empty()
+            && let Some(root) = project_locator.by_walking(Path::new(&v))
         {
-            return Ok(v);
+            return Ok(root);
         }
         let dir = self.terminal.current_pane_path()?;
         let project_locator = ProjectLocator;
@@ -424,26 +427,7 @@ impl Cli {
     }
 
     pub fn resolve_default_branch(&self, repo_root: &Path) -> Result<String> {
-        let project_locator = ProjectLocator;
-        let global = self
-            .repository
-            .run_in(repo_root, &["config", "--global", "init.defaultBranch"])
-            .ok()
-            .and_then(|(s, o, _)| if s == 0 { Some(o) } else { None })
-            .unwrap_or_default();
-        let local = self
-            .repository
-            .run_in(repo_root, &["config", "init.defaultBranch"])
-            .ok()
-            .and_then(|(s, o, _)| if s == 0 { Some(o) } else { None })
-            .unwrap_or_default();
-        let current = self
-            .repository
-            .run_in(repo_root, &["branch", "--show-current"])
-            .ok()
-            .and_then(|(s, o, _)| if s == 0 { Some(o) } else { None })
-            .unwrap_or_default();
-        Ok(project_locator.determine_default_branch(&global, &local, &current))
+        self.repository.default_branch(repo_root)
     }
 }
 
