@@ -341,6 +341,25 @@ fn find_repo_root_is_idempotent() {
 }
 
 #[test]
+fn find_repo_root_rejects_unmarked_configured_path() {
+    let root = tempfile::tempdir().unwrap();
+    let configured = tempfile::tempdir().unwrap();
+    let configured_path = configured.path().to_string_lossy().into_owned();
+    let mut tmux = FakeTmxTest::new(&configured_path);
+    tmux.pane_path = Some(configured_path);
+    unsafe {
+        std::env::remove_var("SENKAI_ROOT");
+        std::env::remove_var("TMUX_WORKTREES_ROOT");
+        std::env::remove_var("MAIN_PROJECT_PATH");
+    }
+    let cli = cli_default(tmux, StubGit);
+
+    let result = cli.find_repo_root_from(root.path());
+
+    assert!(result.is_err());
+}
+
+#[test]
 fn run_create_full_success_path() {
     let cli = cli_default(FakeTmxCreateSuccess, FakeGitCreate);
     let result = cli.dispatch(Command::CreateWorktree, &["test-branch".to_string()]);
