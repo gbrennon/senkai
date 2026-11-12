@@ -2,10 +2,11 @@
 
 ![senkai TUI screenshot](docs/gifs/senkai-demo.gif)
 
-senkai provides a command-line interface and a multiplexer plugin for creating,
-switching between, and cleaning up [git worktrees][git-worktree] without leaving
-your terminal. The current multiplexer integration targets tmux exclusively;
-support for additional multiplexers is planned.
+senkai is a terminal user interface (TUI) for creating, switching between,
+and cleaning up [git worktrees][git-worktree]. It also includes a tmux plugin
+that opens the TUI from tmux keybindings and manages the tmux windows for each
+worktree. The current multiplexer integration targets tmux exclusively; support
+for additional multiplexers is planned.
 
 ## About the name
 
@@ -33,29 +34,63 @@ then choose Yes or No.
 
 ---
 
-## Install
+## Install and run
 
-Add to `~/.tmux.conf` and reload (`prefix + I`):
+`sk` is the standalone TUI binary. Run it from a Git repository to open the
+worktree picker:
+
+```bash
+cd ~/my-project
+sk
+```
+
+Choose one of these installation methods.
+
+### Cargo
+
+Install the published crate with Cargo:
+
+```bash
+cargo install senkai
+sk
+```
+
+### tmux plugin
+
+Add the plugin to `~/.tmux.conf`, then install or reload it with your TPM
+workflow (`prefix + I` for TPM):
 
 ```tmux
 set -g @plugin 'gbrennon/senkai'
 ```
 
-Also needs tmux >= 3.2, git >= 2.28, bash >= 4.0, `curl`, and `tar`.
+The plugin finds an installed `sk` binary, downloads the latest compatible
+release artifact, or builds `sk` with Cargo when needed. Once installed, use
+`prefix + W` to open the worktree TUI or `prefix + D` to open the cleanup TUI.
+
+The plugin needs tmux >= 3.2, git >= 2.28, bash >= 4.0, `curl`, and `tar`.
+
+### Download an artifact
+
+The latest release artifact is available for Linux x86_64:
+
+```bash
+curl -fL \
+  https://github.com/gbrennon/senkai/releases/latest/download/sk-x86_64-unknown-linux-gnu.tar.gz \
+  -o sk.tar.gz
+tar -xzf sk.tar.gz
+install -m 755 sk ~/.local/bin/sk
+sk
+```
+
+Ensure `~/.local/bin` is in `PATH` before running `sk`.
 
 SSH authentication uses the agent available when the plugin is loaded. The
 plugin persists `SSH_AUTH_SOCK` into the invoking tmux session environment so
 Git fetches from worktree windows reuse your loaded SSH keys instead of
 prompting for a password. If you start or restart your agent later, reload the
-plugin from a shell with the agent exported (or source `senkai.tmux` again)
-to refresh the session socket path.
-
-senkai's command-line interface is `sk`. If `sk` is already installed in
-`PATH` (for example with Cargo or from a release package), TPM, tpack, and
-direct execution use that CLI directly. If tmux's `PATH` does not include it,
-the plugin also checks `~/.cargo/bin`, `~/.local/bin`, `/usr/local/bin`, and
-`/usr/bin` before falling back to the Linux x86_64 release binary or a Cargo
-source build.
+plugin from a shell with the agent exported (or source `senkai.tmux` again) to
+refresh the session socket path.
 
 ---
 
