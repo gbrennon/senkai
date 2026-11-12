@@ -312,6 +312,10 @@ mod tests {
 static ENV_MUTEX: Mutex<()> = Mutex::new(());
 
 fn executor_with(runner: impl CommandRunner + 'static) -> TmuxExecutor {
+    TmuxExecutor::new_in_tmux(Box::new(runner))
+}
+
+fn executor_outside(runner: impl CommandRunner + 'static) -> TmuxExecutor {
     TmuxExecutor::new(Box::new(runner))
 }
 
@@ -810,7 +814,7 @@ fn show_error_does_not_call_tmux_outside_tmux() {
     let runner = RecordingRunner::default();
     let calls = runner.calls.clone();
 
-    executor_with(runner)
+    executor_outside(runner)
         .show_error("not in a repository")
         .unwrap();
 
@@ -878,7 +882,7 @@ fn current_pane_path_does_not_query_tmux_outside_tmux() {
         .to_string_lossy()
         .into_owned();
 
-    let result = executor_with(runner).current_pane_path().unwrap();
+    let result = executor_outside(runner).current_pane_path().unwrap();
 
     assert_eq!(result, expected);
     assert!(calls.lock().unwrap().is_empty());
