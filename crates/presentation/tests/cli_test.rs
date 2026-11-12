@@ -356,7 +356,7 @@ fn find_repo_root_rejects_unmarked_configured_path() {
 
     let result = cli.find_repo_root_from(root.path());
 
-    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().to_string(), "Not in a git repository");
 }
 
 #[test]
