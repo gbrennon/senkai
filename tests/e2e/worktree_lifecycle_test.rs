@@ -115,6 +115,7 @@ fn parse_args_preserves_trailing_args() {
 
 #[test]
 fn parse_args_strips_root_equals_flag() {
+    let _guard = ENV_LOCK.lock().unwrap();
     let cli = cli_stub();
     let (cmd, _rest) = cli.parse_args(&[
         "sk".to_string(),
@@ -123,6 +124,10 @@ fn parse_args_strips_root_equals_flag() {
     ]);
     assert_eq!(cmd, AppCommand::Choose);
     assert!(_rest.is_empty());
+    unsafe {
+        std::env::remove_var("SENKAI_ROOT");
+        std::env::remove_var("TMUX_WORKTREES_ROOT");
+    }
 }
 
 #[test]
@@ -137,7 +142,10 @@ fn parse_args_strips_separate_root_flag() {
     ]);
     assert_eq!(cmd, AppCommand::Choose);
     assert!(rest.is_empty());
-    unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
+    unsafe {
+        std::env::remove_var("SENKAI_ROOT");
+        std::env::remove_var("TMUX_WORKTREES_ROOT");
+    }
 }
 
 #[test]
