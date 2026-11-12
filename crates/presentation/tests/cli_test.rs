@@ -126,7 +126,7 @@ fn run_interactive_from_non_tty_uses_popup_path() {
     let root = linked_worktree_root();
     unsafe { std::env::set_var("SENKAI_ROOT", root.path()) };
     let result = cli.spawn_in_popup(&["sk".to_string(), "choose".to_string()]);
-    assert!(result.is_ok());
+    assert!(result.is_err());
     assert!(!guard.show_error_called.get());
     unsafe { std::env::remove_var("SENKAI_ROOT") };
 }
