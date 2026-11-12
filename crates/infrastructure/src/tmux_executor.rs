@@ -10,6 +10,7 @@ use super::command_runner::{CommandRunner, SystemCommandRunner};
 pub struct TmuxExecutor {
     pub runner: Box<dyn CommandRunner>,
     target_pane: Option<String>,
+    inside_tmux: bool,
 }
 
 impl Default for TmuxExecutor {
@@ -17,6 +18,7 @@ impl Default for TmuxExecutor {
         Self {
             runner: Box::new(SystemCommandRunner),
             target_pane: std::env::var("TMUX_PANE").ok(),
+            inside_tmux: std::env::var_os("TMUX").is_some(),
         }
     }
 }
@@ -26,6 +28,15 @@ impl TmuxExecutor {
         Self {
             runner,
             target_pane: None,
+            inside_tmux: std::env::var_os("TMUX").is_some(),
+        }
+    }
+
+    pub fn new_in_tmux(runner: Box<dyn CommandRunner>) -> Self {
+        Self {
+            runner,
+            target_pane: None,
+            inside_tmux: true,
         }
     }
 
@@ -33,6 +44,7 @@ impl TmuxExecutor {
         Self {
             runner,
             target_pane: Some(target_pane.to_string()),
+            inside_tmux: true,
         }
     }
 
@@ -125,7 +137,7 @@ impl TmuxExecutor {
 
     pub fn show_error(&self, msg: &str) -> Result<()> {
         eprintln!("{msg}");
-        if std::env::var_os("TMUX").is_none() {
+        if !self.inside_tmux {
             return Ok(());
         }
         let tmp = std::env::temp_dir().join(format!("senkai-err-{}.txt", std::process::id()));
@@ -234,7 +246,7 @@ impl TmuxExecutor {
     }
 
     pub fn current_pane_path(&self) -> Result<String> {
-        if std::env::var_os("TMUX").is_none() {
+        if !self.inside_tmux {
             return std::env::current_dir()
                 .map(|path| path.to_string_lossy().into_owned())
                 .map_err(|error| senkai_core::error::Error::new(error.to_string()));
@@ -259,7 +271,7 @@ impl TmuxExecutor {
 
 impl MultiplexerPort for TmuxExecutor {
     fn is_inside_tmux(&self) -> bool {
-        std::env::var_os("TMUX").is_some()
+        self.inside_tmux
     }
 
     fn show_error(&self, msg: &str) -> Result<()> {
