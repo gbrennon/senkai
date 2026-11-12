@@ -2,7 +2,7 @@
 name = "senkai"
 version = "0.1.0"
 edition = "2024"
-description = "A tmux plugin for creating, switching between, and cleaning up Git worktrees"
+description = "A version-control and terminal-multiplexing workspace manager"
 readme = "README.md"
 homepage = "https://codeberg.org/gbrennon/senkai"
 license = "MIT"
