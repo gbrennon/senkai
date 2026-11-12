@@ -5,7 +5,6 @@ use ratatui::{Frame, Terminal, backend::TestBackend, buffer::Buffer};
 use senkai_core::error::{Error, Result};
 use senkai_core::selector::Selector;
 use senkai_presentation::tui::RatatuiSelector;
-use senkai_presentation::tui::selector_port::SelectorRunner;
 use senkai_presentation::tui::terminal_backend::TerminalBackend;
 use senkai_presentation::tui::theme::Theme;
 
