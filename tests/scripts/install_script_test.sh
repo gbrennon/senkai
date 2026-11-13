@@ -78,9 +78,9 @@ run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite installed CLI'
 [[ ! -e "$fixture/home/.tmux/plugins/senkai/sk" ]] \
   || fail 'Plugin copied a second binary despite installed CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/bin/sk choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/bin/sk tui choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not use installed CLI'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/bin/sk cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/bin/sk tui cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not use installed CLI'
 
 fixture="$TEMP_DIR/default-path"
@@ -92,9 +92,9 @@ run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite default-path CLI'
 [[ ! -e "$fixture/home/.tmux/plugins/senkai/sk" ]] \
   || fail 'Plugin copied a second binary despite default-path CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.cargo/bin/sk choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.cargo/bin/sk tui choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not use default-path CLI'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.cargo/bin/sk cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.cargo/bin/sk tui cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not use default-path CLI'
 
 fixture="$TEMP_DIR/plugin-path"
@@ -108,9 +108,9 @@ chmod +x "$fixture/home/.cargo/bin/sk" \
 TEST_PATH="$fixture/home/.tmux/plugins/senkai:$fixture/bin:/usr/bin:/bin" \
   run_installer "$fixture"
 [[ ! -s "$fixture/cargo.log" ]] || fail 'Cargo build ran despite PATH CLI'
-grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.tmux/plugins/senkai/sk choose" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix W run-shell -b $fixture/home/.tmux/plugins/senkai/sk tui choose" "$fixture/tmux.log" \
   || fail 'Choose binding did not prefer PATH CLI over Cargo default path'
-grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.tmux/plugins/senkai/sk cleanup" "$fixture/tmux.log" \
+grep -Fq -- "bind-key -T prefix D run-shell -b $fixture/home/.tmux/plugins/senkai/sk tui cleanup" "$fixture/tmux.log" \
   || fail 'Cleanup binding did not prefer PATH CLI over Cargo default path'
 
 fixture="$TEMP_DIR/download"
