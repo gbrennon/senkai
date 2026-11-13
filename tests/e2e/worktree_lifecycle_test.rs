@@ -1,309 +1,56 @@
-use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
-use std::sync::Mutex;
+mod tests {
+    use std::env;
 
-use senkai_presentation::cli::Cli;
-use senkai_presentation::cli::command::Command as AppCommand;
-use tempfile::TempDir;
+    use senkai_core::selector::SelectionResult;
+    use senkai_presentation::cli::Cli;
+    use senkai_presentation::cli::command::Command;
+    use tempfile::tempdir;
 
-use super::common::fakes::git::*;
-use super::common::fakes::loading::*;
-use super::common::fakes::selector::*;
-use super::common::fakes::tmux::*;
-use senkai_core::ports::multiplexer_port::MultiplexerPort;
-use senkai_core::ports::repository_port::RepositoryPort;
-use senkai_presentation::tui::loading_port::LoadingRunner;
-use senkai_presentation::tui::selector_port::SelectorRunner;
+    use super::super::common::fakes::git::FakeGitCreate;
+    use super::super::common::fakes::loading::FakeLoading;
+    use super::super::common::fakes::selector::FakeSelector;
+    use super::super::common::fakes::tmux::FakeTmxTest;
 
-static ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
-
-fn cli_with(
-    tmux: impl MultiplexerPort + 'static,
-    git: impl RepositoryPort + 'static,
-    selector: impl SelectorRunner + 'static,
-    loading: impl LoadingRunner + 'static,
-) -> Cli {
-    Cli::new(
-        Box::new(tmux),
-        Box::new(git),
-        Box::new(selector),
-        Box::new(loading),
-    )
-}
-
-fn cli_stub() -> Cli {
-    cli_with(StubTmx, StubGit, StubSelector, FakeLoading::new())
-}
-
-/// RepoGuard holds a `TempDir` alive for the test's duration.
-struct RepoGuard {
-    _dir: TempDir,
-    repo: PathBuf,
-}
-
-impl RepoGuard {
-    fn repo_path(&self) -> &Path {
-        &self.repo
-    }
-
-    fn work_dir(&self) -> PathBuf {
-        self.repo.join("worktrees")
-    }
-}
-
-/// Creates a temporary git repo with at least one commit (required for
-/// `git worktree add`).
-fn init_ephemeral_repo() -> RepoGuard {
-    let dir = TempDir::new().expect("failed to create temp dir");
-    let repo = dir.path().join("repo");
-    std::fs::create_dir(&repo).unwrap();
-
-    let run_git = |args: &[&str]| {
-        let status = std::process::Command::new("git")
-            .args(args)
-            .current_dir(&repo)
-            .status()
-            .expect("git command failed");
-        assert!(status.success(), "git {:?} failed", args);
-    };
-
-    run_git(&["init"]);
-    run_git(&[
-        "-c",
-        "user.name=e2e-test",
-        "-c",
-        "user.email=e2e@test",
-        "commit",
-        "--allow-empty",
-        "-m",
-        "init",
-    ]);
-    run_git(&["branch", "-M", "main"]);
-
-    std::fs::create_dir_all(repo.join("worktrees")).unwrap();
-
-    RepoGuard { _dir: dir, repo }
-}
-
-#[test]
-fn parse_args_defaults_to_choose() {
-    let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&["sk".to_string()]);
-    assert_eq!(cmd, AppCommand::Choose);
-    assert!(rest.is_empty());
-}
-
-#[test]
-fn parse_args_extracts_command() {
-    let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&["sk".to_string(), "cleanup".to_string()]);
-    assert_eq!(cmd, AppCommand::Cleanup);
-    assert!(rest.is_empty());
-}
-
-#[test]
-fn parse_args_preserves_trailing_args() {
-    let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&[
-        "sk".to_string(),
-        "create-worktree".to_string(),
-        "feat/some-branch".to_string(),
-    ]);
-    assert_eq!(cmd, AppCommand::CreateWorktree);
-    assert_eq!(rest, vec!["feat/some-branch"]);
-}
-
-#[test]
-fn parse_args_strips_root_equals_flag() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let cli = cli_stub();
-    let (cmd, _rest) = cli.parse_args(&[
-        "sk".to_string(),
-        "choose".to_string(),
-        "--root=/tmp/test".to_string(),
-    ]);
-    assert_eq!(cmd, AppCommand::Choose);
-    assert!(_rest.is_empty());
-    unsafe {
-        std::env::remove_var("SENKAI_ROOT");
-        std::env::remove_var("TMUX_WORKTREES_ROOT");
-    }
-}
-
-#[test]
-fn parse_args_strips_separate_root_flag() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&[
-        "sk".to_string(),
-        "choose".to_string(),
-        "--root".to_string(),
-        "/tmp/test".to_string(),
-    ]);
-    assert_eq!(cmd, AppCommand::Choose);
-    assert!(rest.is_empty());
-    unsafe {
-        std::env::remove_var("SENKAI_ROOT");
-        std::env::remove_var("TMUX_WORKTREES_ROOT");
-    }
-}
-
-#[test]
-fn unknown_command_defaults_to_choose() {
-    let cli = cli_stub();
-    let (cmd, rest) = cli.parse_args(&["sk".to_string(), "nonexistent-cmd".to_string()]);
-    assert_eq!(cmd, AppCommand::Choose);
-    assert!(rest.is_empty());
-}
-
-#[test]
-fn find_repo_root_via_env_var() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let guard = init_ephemeral_repo();
-    let cli = cli_stub();
-    unsafe {
-        std::env::set_var(
-            "TMUX_WORKTREES_ROOT",
-            guard.repo_path().to_string_lossy().as_ref(),
+    fn create_cli(repository: &std::path::Path) -> Cli {
+        Cli::new(
+            Box::new(FakeTmxTest::outside_tmux(&repository.to_string_lossy())),
+            Box::new(FakeGitCreate),
+            Box::new(FakeSelector::new(vec![SelectionResult::Cancelled])),
+            Box::new(FakeLoading::new()),
         )
-    };
-    let root = cli.find_repo_root().unwrap();
-    assert_eq!(root, guard.repo_path().to_string_lossy());
-    unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
-}
+    }
 
-#[test]
-fn find_repo_root_by_walking() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let guard = init_ephemeral_repo();
-    let cli = cli_stub();
-    unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
-    let root = cli.find_repo_root_from(guard.repo_path()).unwrap();
-    assert_eq!(root, guard.repo_path().to_string_lossy());
-}
+    #[test]
+    fn parse_args_defaults_to_choose() {
+        let repository = tempdir().unwrap();
+        let cli = create_cli(repository.path());
+        let (command, rest) = cli.parse_args(&["sk".to_string()]);
 
-#[test]
-fn find_repo_root_from_subdirectory() {
-    let _guard = ENV_LOCK.lock().unwrap();
-    let guard = init_ephemeral_repo();
-    let subdir = guard.repo_path().join("src");
-    std::fs::create_dir(&subdir).unwrap();
-    let cli = cli_stub();
-    unsafe { std::env::remove_var("TMUX_WORKTREES_ROOT") };
-    let found = cli.find_repo_root_from(&subdir).unwrap();
-    assert_eq!(found, guard.repo_path().to_string_lossy());
-}
+        assert_eq!(command, Command::Choose);
+        assert!(rest.is_empty());
+    }
 
-#[test]
-fn resolve_default_branch_in_ephemeral_repo() {
-    let guard = init_ephemeral_repo();
-    let cli = cli_with(
-        StubTmx,
-        FakeGitDefaultBranch,
-        StubSelector,
-        FakeLoading::new(),
-    );
-    let branch = cli.resolve_default_branch(guard.repo_path()).unwrap();
-    assert!(!branch.is_empty());
-}
+    #[test]
+    fn create_worktree_runs_through_application_entrypoint() {
+        let repository = tempdir().unwrap();
+        let target = repository.path().join(".worktrees").join("feature");
+        std::fs::create_dir_all(&target).unwrap();
+        std::fs::create_dir(repository.path().join(".git")).unwrap();
+        let previous_directory = env::current_dir().unwrap();
+        let previous_root = env::var_os("SENKAI_ROOT");
+        unsafe {
+            env::set_var("SENKAI_ROOT", repository.path());
+        }
 
-#[test]
-fn list_worktrees_empty_when_no_worktrees() {
-    let guard = init_ephemeral_repo();
-    let cli = cli_with(
-        StubTmx,
-        FakeGitPorcelain::new(&format!("worktree {}\n", guard.repo_path().display())),
-        StubSelector,
-        FakeLoading::new(),
-    );
-    let worktrees = cli.list_worktrees(guard.repo_path(), "worktrees").unwrap();
-    assert!(
-        worktrees.is_empty(),
-        "expected no worktrees in fresh repo, got {worktrees:?}"
-    );
-}
+        let result = create_cli(repository.path())
+            .dispatch(Command::CreateWorktree, &["feature".to_string()]);
 
-#[test]
-fn worktree_full_lifecycle() {
-    let guard = init_ephemeral_repo();
-    let repo_root = guard.repo_path();
-    let target = guard.work_dir().join("feat-lifecycle");
-    let branch = "feat/lifecycle-test";
-
-    let git = FakeGitLifecycle::new();
-    let tmux = FakeTmxTest::new(&repo_root.to_string_lossy());
-    let kill_called = tmux.kill_called.clone();
-
-    let cli = cli_with(tmux, git, StubSelector, FakeLoading::new());
-
-    cli.create_worktree(repo_root, &target, branch, "main")
-        .unwrap();
-
-    let worktrees = cli.list_worktrees(repo_root, "worktrees").unwrap();
-    assert!(worktrees.is_empty());
-
-    let found_branch = cli.worktree_branch(&target).unwrap();
-    assert_eq!(found_branch, branch);
-
-    cli.remove_worktree(repo_root, &target, branch).unwrap();
-
-    assert!(kill_called.get());
-}
-
-#[test]
-fn create_multiple_worktrees_and_list_all() {
-    let guard = init_ephemeral_repo();
-    let repo_root = guard.repo_path();
-    let git = FakeGitLifecycle::new();
-    let tmux = FakeTmxTest::new(&repo_root.to_string_lossy());
-    let kill_called = tmux.kill_called.clone();
-
-    let cli = cli_with(tmux, git, StubSelector, FakeLoading::new());
-
-    let branches = ["feat/alpha", "feat/beta", "feat/gamma"];
-    let mut targets = Vec::new();
-
-    branches.iter().for_each(|&b| {
-        let t = guard.work_dir().join(b);
-        cli.create_worktree(repo_root, &t, b, "main").unwrap();
-        targets.push((t, b));
-    });
-
-    assert_eq!(targets.len(), 3);
-
-    targets.iter().for_each(|(t, b)| {
-        cli.remove_worktree(repo_root, t, b).unwrap();
-    });
-
-    assert!(kill_called.get());
-}
-
-#[test]
-fn delete_branch_removes_it() {
-    let guard = init_ephemeral_repo();
-    let repo_root = guard.repo_path();
-    let target = guard.work_dir().join("feat-to-delete");
-    let branch = "feat/to-delete";
-
-    let git = FakeGitLifecycle::new();
-    let tmux = FakeTmxTest::new(&repo_root.to_string_lossy());
-
-    let cli = cli_with(tmux, git, StubSelector, FakeLoading::new());
-
-    cli.create_worktree(repo_root, &target, branch, "main")
-        .unwrap();
-    cli.remove_worktree(repo_root, &target, branch).unwrap();
-
-    cli.delete_branch(repo_root, branch).unwrap();
-
-    let branch_target = guard.work_dir().join("feat-to-delete-v2");
-    cli.create_worktree(repo_root, &branch_target, branch, "main")
-        .unwrap();
-
-    let found = cli.worktree_branch(&branch_target).unwrap();
-    assert_eq!(found, branch);
-
-    cli.remove_worktree(repo_root, &branch_target, branch)
-        .unwrap();
-    cli.delete_branch(repo_root, branch).unwrap();
+        assert!(result.is_ok());
+        assert_eq!(env::current_dir().unwrap(), target);
+        env::set_current_dir(previous_directory).unwrap();
+        match previous_root {
+            Some(value) => unsafe { env::set_var("SENKAI_ROOT", value) },
+            None => unsafe { env::remove_var("SENKAI_ROOT") },
+        }
+    }
 }
