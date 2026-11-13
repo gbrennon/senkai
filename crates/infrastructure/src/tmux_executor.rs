@@ -113,6 +113,7 @@ impl TmuxExecutor {
             let args = self.new_window_args(&win, cwd, command);
             let references: Vec<&str> = args.iter().map(String::as_str).collect();
             self.run_ok(&references);
+            self.run_ok(&["select-window", "-t", &target]);
             self.run_ok(&["display-message", &format!("Created worktree: {branch}")]);
         }
         Ok(())
