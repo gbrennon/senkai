@@ -70,6 +70,11 @@ release artifact, or builds `sk` with Cargo when needed. Once installed, use
 
 The plugin needs tmux >= 3.2, git >= 2.28, bash >= 4.0, `curl`, and `tar`.
 
+The tmux bindings invoke `sk tui choose` and `sk tui cleanup` explicitly. When
+those commands are launched by tmux without a terminal input stream, senkai
+opens the TUI in a tmux popup. Direct terminal launches render the TUI inline;
+plain CLI commands never open a popup.
+
 ### Download an artifact
 
 The latest release artifact is available for Linux x86_64:
