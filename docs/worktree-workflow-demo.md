@@ -58,7 +58,7 @@ existing branch.
 Run cleanup to open the multi-select removal picker:
 
 ```text
-sk cleanup
+sk tui cleanup
 ```
 
 Select each worktree with Space, press Enter, and confirm the removal. Senkai
