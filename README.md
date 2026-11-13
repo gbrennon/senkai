@@ -36,12 +36,12 @@ then choose Yes or No.
 
 ## Install and run
 
-`sk` is the standalone TUI binary. Run it from a Git repository to open the
+`sk tui` is the standalone TUI command. Run it from a Git repository to open the
 worktree picker:
 
 ```bash
 cd ~/my-project
-sk
+sk tui
 ```
 
 Choose one of these installation methods.
@@ -52,7 +52,7 @@ Install the published crate with Cargo:
 
 ```bash
 cargo install senkai
-sk
+sk tui
 ```
 
 ### tmux plugin
@@ -80,10 +80,14 @@ curl -fL \
   -o sk.tar.gz
 tar -xzf sk.tar.gz
 install -m 755 sk ~/.local/bin/sk
-sk
+sk tui
 ```
 
 Ensure `~/.local/bin` is in `PATH` before running `sk`.
+
+Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create or
+resume a named worktree, or use `sk choose` for a numbered terminal prompt. Use
+`sk tui`, `sk tui choose`, or `sk tui cleanup` when you want the Ratatui interface.
 
 SSH authentication uses the agent available when the plugin is loaded. The
 plugin persists `SSH_AUTH_SOCK` into the invoking tmux session environment so
