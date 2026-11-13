@@ -7,6 +7,7 @@ license = "MIT"
 homepage = "https://codeberg.org/gbrennon/senkai"
 repository = "https://codeberg.org/gbrennon/senkai"
 readme = "../../README.md"
+autotests = false
 
 [lib]
 path = "src/lib.rs"
@@ -26,7 +27,3 @@ tempfile = "3.0"
 [[test]]
 name = "presentation"
 path = "tests/mod.rs"
-
-[[test]]
-name = "cli"
-path = "tests/cli/cli_test.rs"
