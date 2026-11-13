@@ -26,3 +26,7 @@ tempfile = "3.0"
 [[test]]
 name = "presentation"
 path = "tests/mod.rs"
+
+[[test]]
+name = "cli"
+path = "tests/cli/cli_test.rs"
