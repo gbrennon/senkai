@@ -67,10 +67,18 @@ impl ProjectLocator {
 mod tests {
     use super::*;
     use std::fs;
+    use std::sync::{Mutex, MutexGuard, OnceLock};
     use tempfile::tempdir;
+
+    static ENVIRONMENT: OnceLock<Mutex<()>> = OnceLock::new();
+
+    fn environment_guard() -> MutexGuard<'static, ()> {
+        ENVIRONMENT.get_or_init(|| Mutex::new(())).lock().unwrap()
+    }
 
     #[test]
     fn project_locator_from_env_returns_some_when_valid() {
+        let _guard = environment_guard();
         let dir = tempdir().unwrap();
         let project = dir.path().join("project");
         fs::create_dir_all(&project).unwrap();
@@ -83,6 +91,7 @@ mod tests {
 
     #[test]
     fn project_locator_from_env_returns_none_when_not_set() {
+        let _guard = environment_guard();
         unsafe {
             std::env::remove_var("SENKAI_ROOT");
             std::env::remove_var("TMUX_WORKTREES_ROOT");
@@ -93,6 +102,7 @@ mod tests {
 
     #[test]
     fn project_locator_from_env_returns_none_when_not_repository() {
+        let _guard = environment_guard();
         let dir = tempdir().unwrap();
         unsafe { std::env::set_var("SENKAI_ROOT", dir.path().to_str().unwrap()) };
         let result = ProjectLocator::from_env();
@@ -102,6 +112,7 @@ mod tests {
 
     #[test]
     fn project_locator_from_env_falls_back_to_tmux_worktrees_root() {
+        let _guard = environment_guard();
         let dir = tempdir().unwrap();
         let project = dir.path().join("project");
         fs::create_dir_all(&project).unwrap();
@@ -144,6 +155,7 @@ mod tests {
 
     #[test]
     fn project_locator_from_env_returns_some_when_worktree() {
+        let _guard = environment_guard();
         let dir = tempdir().unwrap();
         let project = dir.path().join("worktree");
         fs::create_dir(&project).unwrap();
