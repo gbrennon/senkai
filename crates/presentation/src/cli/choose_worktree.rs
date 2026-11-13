@@ -90,10 +90,7 @@ impl ChooseWorktree {
                     .operations
                     .branch(worktree_path)
                     .unwrap_or_else(|_| display_name.clone());
-                match branch.is_empty() || branch == "?" {
-                    true => self.create_worktree(display_name),
-                    false => self.runtime.open(&branch, worktree_path),
-                }
+                self.runtime.open(&branch, worktree_path)
             }
             SelectionResult::Custom(branch) => self.create_worktree(&branch),
             SelectionResult::SelectedMany(_) | SelectionResult::Cancelled => Ok(()),
