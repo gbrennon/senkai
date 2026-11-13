@@ -162,8 +162,8 @@ unbind_stale_keys() {
 }
 
 bind_keys() {
-    tmux bind-key -T prefix "$WORKTREE_KEY" run-shell -b "$BINARY_PATH choose"
-    tmux bind-key -T prefix "$CLEANUP_KEY" run-shell -b "$BINARY_PATH cleanup"
+    tmux bind-key -T prefix "$WORKTREE_KEY" run-shell -b "$BINARY_PATH tui choose"
+    tmux bind-key -T prefix "$CLEANUP_KEY" run-shell -b "$BINARY_PATH tui cleanup"
 }
 
 main() {
