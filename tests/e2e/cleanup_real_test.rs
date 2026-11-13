@@ -64,6 +64,7 @@ impl TmuxGuard {
                 "-c",
                 root,
                 binary,
+                "tui",
                 "cleanup",
                 "--root",
                 root,
@@ -138,6 +139,32 @@ fn assert_success(output: &Output, action: &str) {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
+}
+
+#[test]
+fn binary_entrypoint_creates_and_resumes_a_worktree_without_tui() {
+    let repo = RepoGuard::new();
+    let binary = binary_path();
+    let root = repo.root.to_str().unwrap();
+    let create = Command::new(&binary)
+        .args(["choose", "feat/e2e-c", "--root", root])
+        .output()
+        .unwrap();
+    assert_success(&create, "create worktree without tui");
+
+    let resume = Command::new(&binary)
+        .args(["choose", "feat/e2e-c", "--root", root])
+        .output()
+        .unwrap();
+    assert_success(&resume, "resume worktree without tui");
+
+    let worktrees = run_command(
+        "git",
+        &["worktree", "list", "--porcelain"],
+        Some(&repo.root),
+    );
+    let output = String::from_utf8(worktrees.stdout).unwrap();
+    assert_eq!(output.matches("feat-e2e-c").count(), 1);
 }
 
 #[test]

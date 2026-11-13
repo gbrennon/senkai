@@ -366,6 +366,7 @@ pub struct FakeTmxTest {
     pub worktree_dir: String,
     pub shell_cmd: String,
     pub auto_fetch: Option<String>,
+    pub inside_tmux: bool,
 }
 impl FakeTmxTest {
     pub fn new(repo: &str) -> Self {
@@ -381,12 +382,19 @@ impl FakeTmxTest {
             worktree_dir: ".worktrees".into(),
             shell_cmd: "/bin/bash".into(),
             auto_fetch: Some("false".into()),
+            inside_tmux: true,
         }
+    }
+
+    pub fn outside_tmux(repo: &str) -> Self {
+        let mut fake = Self::new(repo);
+        fake.inside_tmux = false;
+        fake
     }
 }
 impl MultiplexerPort for FakeTmxTest {
     fn is_inside_tmux(&self) -> bool {
-        true
+        self.inside_tmux
     }
     fn show_error(&self, msg: &str) -> Result<()> {
         self.show_error_called.set(true);

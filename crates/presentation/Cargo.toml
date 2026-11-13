@@ -7,6 +7,7 @@ license = "MIT"
 homepage = "https://codeberg.org/gbrennon/senkai"
 repository = "https://codeberg.org/gbrennon/senkai"
 readme = "../../README.md"
+autotests = false
 
 [lib]
 path = "src/lib.rs"

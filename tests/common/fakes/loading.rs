@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use senkai_core::error::Result;
-use senkai_presentation::tui::loading_port::LoadingRunner;
+use senkai_core::ports::LoadingRunner;
 
 pub struct FakeLoading {
     pub labels: Rc<RefCell<Vec<String>>>,

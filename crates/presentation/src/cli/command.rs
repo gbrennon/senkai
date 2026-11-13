@@ -1,43 +1,38 @@
-use std::fmt;
-use std::str::FromStr;
-
-/// User-facing CLI commands.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
     Choose,
     CreateWorktree,
     Cleanup,
-    DemoLoading,
+    TuiChoose,
+    TuiCleanup,
+    TuiDemoLoading,
 }
 
-/// Returned when a command string does not match any variant.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct InvalidCommand(pub String);
-
-impl fmt::Display for InvalidCommand {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid command: {}", self.0)
-    }
-}
-
-impl std::error::Error for InvalidCommand {}
-
-impl FromStr for Command {
-    type Err = InvalidCommand;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "choose" => Ok(Self::Choose),
-            "create-worktree" => Ok(Self::CreateWorktree),
-            "cleanup" => Ok(Self::Cleanup),
-            "demo-loading" => Ok(Self::DemoLoading),
-            other => Err(InvalidCommand(other.to_string())),
+impl Command {
+    pub fn parse(value: &str) -> Self {
+        match value {
+            "create-worktree" | "create" => Self::CreateWorktree,
+            "cleanup" => Self::Cleanup,
+            "tui" => Self::TuiChoose,
+            _ => Self::Choose,
         }
     }
-}
-impl Command {
-    /// Whether this command requires an interactive terminal.
+
     pub fn is_interactive(self) -> bool {
-        matches!(self, Self::Choose | Self::Cleanup | Self::DemoLoading)
+        matches!(
+            self,
+            Self::Choose
+                | Self::Cleanup
+                | Self::TuiChoose
+                | Self::TuiCleanup
+                | Self::TuiDemoLoading
+        )
+    }
+
+    pub fn is_tui(self) -> bool {
+        matches!(
+            self,
+            Self::TuiChoose | Self::TuiCleanup | Self::TuiDemoLoading
+        )
     }
 }

@@ -2,16 +2,25 @@
 use std::cell::RefCell;
 
 use senkai_core::error::Result;
-use senkai_core::selector::{SelectionResult, Selector};
-use senkai_presentation::tui::selector_port::SelectorRunner;
+use senkai_core::ports::SelectorRunner;
+use senkai_core::selector::SelectionResult;
 
-/// Selector runner for tests that returns a canned result.
 pub struct StubSelector;
+
 impl SelectorRunner for StubSelector {
-    fn run_selector(
+    fn select(
         &self,
-        _selector: &mut Selector,
-        _filtered: &[usize],
+        _items: Vec<String>,
+        _allow_custom: bool,
+        _prompt: &str,
+        _header: &str,
+    ) -> Result<SelectionResult> {
+        unimplemented!()
+    }
+
+    fn select_many(
+        &self,
+        _items: Vec<String>,
         _prompt: &str,
         _header: &str,
     ) -> Result<SelectionResult> {
@@ -23,6 +32,7 @@ pub struct FakeSelector {
     pub results: RefCell<Vec<SelectionResult>>,
     pub calls: std::rc::Rc<RefCell<Vec<Vec<String>>>>,
 }
+
 impl FakeSelector {
     pub fn new(results: Vec<SelectionResult>) -> Self {
         Self {
@@ -31,20 +41,34 @@ impl FakeSelector {
         }
     }
 }
+
 impl SelectorRunner for FakeSelector {
-    fn run_selector(
+    fn select(
         &self,
-        selector: &mut Selector,
-        _filtered: &[usize],
+        items: Vec<String>,
+        _allow_custom: bool,
         _prompt: &str,
         _header: &str,
     ) -> Result<SelectionResult> {
-        self.calls.borrow_mut().push(selector.items().to_vec());
-        let mut results = self.results.borrow_mut();
-        if !results.is_empty() {
-            Ok(results.remove(0))
+        self.calls.borrow_mut().push(items);
+        Ok(if self.results.borrow().is_empty() {
+            SelectionResult::Cancelled
         } else {
-            Ok(SelectionResult::Cancelled)
-        }
+            self.results.borrow_mut().remove(0)
+        })
+    }
+
+    fn select_many(
+        &self,
+        items: Vec<String>,
+        _prompt: &str,
+        _header: &str,
+    ) -> Result<SelectionResult> {
+        self.calls.borrow_mut().push(items);
+        Ok(if self.results.borrow().is_empty() {
+            SelectionResult::Cancelled
+        } else {
+            self.results.borrow_mut().remove(0)
+        })
     }
 }
