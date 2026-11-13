@@ -56,7 +56,7 @@ fn key_from_event_key(event: crossterm::event::KeyEvent) -> Key {
 #[cfg(test)]
 use ratatui::backend::TestBackend;
 
-use super::selector_port::SelectorRunner;
+use senkai_core::ports::SelectorRunner;
 use senkai_core::{
     error::{Error, Result},
     selector::{Key, SelectionResult, Selector},
@@ -182,17 +182,37 @@ impl RatatuiSelector {
 }
 
 impl SelectorRunner for RatatuiSelector {
-    fn run_selector(
+    fn select(
         &self,
-        selector: &mut Selector,
-        filtered: &[usize],
+        items: Vec<String>,
+        allow_custom: bool,
         prompt: &str,
         header: &str,
     ) -> Result<SelectionResult> {
+        let mut selector = Selector::new(items, allow_custom);
+        let filtered = selector.filter("");
         Self::run_with_backend(
             &RealTerminal,
-            selector,
-            filtered,
+            &mut selector,
+            &filtered,
+            prompt,
+            header,
+            &self.theme,
+        )
+    }
+
+    fn select_many(
+        &self,
+        items: Vec<String>,
+        prompt: &str,
+        header: &str,
+    ) -> Result<SelectionResult> {
+        let mut selector = Selector::new_multi(items);
+        let filtered = selector.filter("");
+        Self::run_with_backend(
+            &RealTerminal,
+            &mut selector,
+            &filtered,
             prompt,
             header,
             &self.theme,
@@ -428,7 +448,7 @@ mod tests {
             columns
                 .windows(wanted.len())
                 .position(|w| w == wanted.as_slice())
-                .expect(format!("{text} on row {row}").as_str()) as u16
+                .unwrap_or_else(|| panic!("{text} on row {row}")) as u16
         };
 
         let alpha_col = find_col(5, "alpha");
