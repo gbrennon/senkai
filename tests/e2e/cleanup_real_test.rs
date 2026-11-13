@@ -25,6 +25,11 @@ impl RepoGuard {
         std::fs::write(root.join("README"), "e2e\n").unwrap();
         run_command("git", &["add", "README"], Some(&root));
         run_command("git", &["commit", "-qm", "initial"], Some(&root));
+        run_command(
+            "git",
+            &["remote", "add", "origin", root.to_str().unwrap()],
+            Some(&root),
+        );
         std::fs::create_dir(root.join(".worktrees")).unwrap();
         for (branch, directory) in [
             ("feat/e2e-a", ".worktrees/feat-e2e-a"),
@@ -42,6 +47,7 @@ impl RepoGuard {
 
 struct TmuxGuard {
     socket: String,
+    socket_path: String,
 }
 
 impl TmuxGuard {
@@ -71,7 +77,118 @@ impl TmuxGuard {
             ],
         );
         assert_success(&output, "start cleanup tmux session");
-        Self { socket }
+        let socket_path = socket_path(&socket, "cleanup:0");
+        Self {
+            socket,
+            socket_path,
+        }
+    }
+
+    fn start_worktree(root: &Path, binary: &Path, branch: &str) -> Self {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let socket = format!("senkai-e2e-{}-{nonce}", std::process::id());
+        let _ = tmux_command(&socket, &["kill-server"]);
+        let root = root.to_str().unwrap();
+        let output = tmux_command(
+            &socket,
+            &["new-session", "-d", "-s", "worktree", "-c", root],
+        );
+        assert_success(&output, "start worktree tmux session");
+        let socket_path = socket_path(&socket, "worktree:0");
+        let guard = Self {
+            socket,
+            socket_path,
+        };
+        guard.run_choose(root, binary, branch, "worktree:0");
+        guard
+    }
+
+    fn open_worktree(&self, root: &Path, binary: &Path, branch: &str) {
+        let root = root.to_str().unwrap();
+        let output = tmux_command(
+            &self.socket,
+            &[
+                "new-window",
+                "-d",
+                "-t",
+                "worktree:",
+                "-n",
+                "invoke",
+                "-c",
+                root,
+            ],
+        );
+        assert_success(&output, "start resume worktree command");
+        self.run_choose(root, binary, branch, "worktree:invoke");
+    }
+
+    fn run_choose(&self, root: &str, binary: &Path, branch: &str, target: &str) {
+        let command = format!(
+            "env -u TMUX_PANE TMUX={},0,0 {} choose {branch} --root {root}",
+            self.socket_path,
+            binary.to_str().unwrap()
+        );
+        let output = tmux_command(&self.socket, &["send-keys", "-t", target, "-l", &command]);
+        assert_success(&output, "type choose command in tmux");
+        let output = tmux_command(&self.socket, &["send-keys", "-t", target, "Enter"]);
+        assert_success(&output, "submit choose command in tmux");
+    }
+
+    fn windows(&self) -> String {
+        let output = tmux_command(
+            &self.socket,
+            &["list-windows", "-F", "#{window_name}|#{pane_current_path}"],
+        );
+        assert_success(&output, "list worktree windows");
+        String::from_utf8(output.stdout).unwrap()
+    }
+
+    fn capture_target(&self, target: &str) -> String {
+        let output = tmux_command(&self.socket, &["capture-pane", "-p", "-t", target]);
+        assert_success(&output, "capture worktree pane");
+        String::from_utf8(output.stdout).unwrap()
+    }
+
+    fn active_window(&self) -> String {
+        let output = tmux_command(
+            &self.socket,
+            &[
+                "display-message",
+                "-p",
+                "-t",
+                "worktree:",
+                "#{window_name}|#{pane_current_path}",
+            ],
+        );
+        assert_success(&output, "resolve active worktree window");
+        String::from_utf8(output.stdout).unwrap().trim().to_string()
+    }
+
+    fn wait_for_path(&self, path: &Path) -> String {
+        let expected = path.to_string_lossy();
+        for _ in 0..100 {
+            let windows = self.windows();
+            if windows
+                .lines()
+                .any(|line| line.ends_with(expected.as_ref()))
+            {
+                return windows;
+            }
+            sleep(Duration::from_millis(50));
+        }
+        let root = path.parent().and_then(Path::parent).unwrap();
+        let worktrees = run_command("git", &["worktree", "list", "--porcelain"], Some(root));
+        let branches = run_command("git", &["branch", "--format=%(refname:short)"], Some(root));
+        panic!(
+            "worktree path never appeared {expected:?}:\n{}\n{}\n{}\n{}",
+            self.windows(),
+            self.capture_target("worktree:0"),
+            String::from_utf8_lossy(&worktrees.stdout),
+            String::from_utf8_lossy(&branches.stdout)
+        );
     }
 
     fn send_key(&self, key: &str) {
@@ -110,6 +227,15 @@ fn binary_path() -> PathBuf {
     std::env::var_os("CARGO_BIN_EXE_sk")
         .map(PathBuf::from)
         .expect("Cargo did not provide the sk binary path")
+}
+
+fn socket_path(socket: &str, target: &str) -> String {
+    let output = tmux_command(
+        socket,
+        &["display-message", "-p", "-t", target, "#{socket_path}"],
+    );
+    assert_success(&output, "resolve tmux socket path");
+    String::from_utf8(output.stdout).unwrap().trim().to_string()
 }
 
 fn tmux_command(socket: &str, args: &[&str]) -> Output {
@@ -165,6 +291,43 @@ fn binary_entrypoint_creates_and_resumes_a_worktree_without_tui() {
     );
     let output = String::from_utf8(worktrees.stdout).unwrap();
     assert_eq!(output.matches("feat-e2e-c").count(), 1);
+}
+
+#[test]
+fn binary_entrypoint_changes_to_created_and_resumed_worktree_path() {
+    let repo = RepoGuard::new();
+    let binary = binary_path();
+    let target = repo.root.join(".worktrees/feat-e2e-c");
+    let tmux = TmuxGuard::start_worktree(&repo.root, &binary, "feat/e2e-c");
+
+    let created = tmux.wait_for_path(&target);
+    assert_eq!(
+        created
+            .lines()
+            .filter(|line| line.ends_with(target.to_string_lossy().as_ref()))
+            .count(),
+        1
+    );
+    let active = tmux.active_window();
+    assert!(
+        active.ends_with(target.to_string_lossy().as_ref()),
+        "active window: {active}"
+    );
+
+    tmux.open_worktree(&repo.root, &binary, "feat/e2e-c");
+    let resumed = tmux.wait_for_path(&target);
+    assert_eq!(
+        resumed
+            .lines()
+            .filter(|line| line.ends_with(target.to_string_lossy().as_ref()))
+            .count(),
+        1
+    );
+    let active = tmux.active_window();
+    assert!(
+        active.ends_with(target.to_string_lossy().as_ref()),
+        "active window: {active}"
+    );
 }
 
 #[test]
