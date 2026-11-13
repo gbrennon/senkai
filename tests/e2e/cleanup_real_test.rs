@@ -60,28 +60,15 @@ impl TmuxGuard {
         let _ = tmux_command(&socket, &["kill-server"]);
         let root = root.to_str().unwrap();
         let binary = binary.to_str().unwrap();
-        let output = tmux_command(
-            &socket,
-            &[
-                "new-session",
-                "-d",
-                "-s",
-                "cleanup",
-                "-c",
-                root,
-                binary,
-                "tui",
-                "cleanup",
-                "--root",
-                root,
-            ],
-        );
+        let output = tmux_command(&socket, &["new-session", "-d", "-s", "cleanup", "-c", root]);
         assert_success(&output, "start cleanup tmux session");
         let socket_path = socket_path(&socket, "cleanup:0");
-        Self {
+        let guard = Self {
             socket,
             socket_path,
-        }
+        };
+        guard.run_tui_cleanup(root, binary, "cleanup:0");
+        guard
     }
 
     fn start_worktree(root: &Path, binary: &Path, branch: &str) -> Self {
@@ -125,16 +112,28 @@ impl TmuxGuard {
         self.run_choose(root, binary, branch, "worktree:invoke");
     }
 
+    fn run_tui_cleanup(&self, root: &str, binary: &str, target: &str) {
+        let command = format!(
+            "env -u TMUX_PANE TMUX={},0,0 {} tui cleanup --root {root}",
+            self.socket_path, binary
+        );
+        self.send_command(target, &command);
+    }
+
     fn run_choose(&self, root: &str, binary: &Path, branch: &str, target: &str) {
         let command = format!(
             "env -u TMUX_PANE TMUX={},0,0 {} choose {branch} --root {root}",
             self.socket_path,
             binary.to_str().unwrap()
         );
-        let output = tmux_command(&self.socket, &["send-keys", "-t", target, "-l", &command]);
-        assert_success(&output, "type choose command in tmux");
+        self.send_command(target, &command);
+    }
+
+    fn send_command(&self, target: &str, command: &str) {
+        let output = tmux_command(&self.socket, &["send-keys", "-t", target, "-l", command]);
+        assert_success(&output, "type command in tmux");
         let output = tmux_command(&self.socket, &["send-keys", "-t", target, "Enter"]);
-        assert_success(&output, "submit choose command in tmux");
+        assert_success(&output, "submit command in tmux");
     }
 
     fn windows(&self) -> String {
@@ -257,6 +256,14 @@ fn run_command(program: &str, args: &[&str], cwd: Option<&Path>) -> Output {
     output
 }
 
+fn tmux_available() -> bool {
+    Command::new("tmux")
+        .arg("-V")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false)
+}
+
 fn assert_success(output: &Output, action: &str) {
     assert!(
         output.status.success(),
@@ -269,6 +276,10 @@ fn assert_success(output: &Output, action: &str) {
 
 #[test]
 fn binary_entrypoint_creates_and_resumes_a_worktree_without_tui() {
+    if !tmux_available() {
+        eprintln!("skipping real tmux test: tmux is unavailable");
+        return;
+    }
     let repo = RepoGuard::new();
     let binary = binary_path();
     let root = repo.root.to_str().unwrap();
@@ -295,6 +306,10 @@ fn binary_entrypoint_creates_and_resumes_a_worktree_without_tui() {
 
 #[test]
 fn binary_entrypoint_changes_to_created_and_resumed_worktree_path() {
+    if !tmux_available() {
+        eprintln!("skipping real tmux test: tmux is unavailable");
+        return;
+    }
     let repo = RepoGuard::new();
     let binary = binary_path();
     let target = repo.root.join(".worktrees/feat-e2e-c");
@@ -332,6 +347,10 @@ fn binary_entrypoint_changes_to_created_and_resumed_worktree_path() {
 
 #[test]
 fn binary_entrypoint_removes_two_worktrees_after_confirmation() {
+    if !tmux_available() {
+        eprintln!("skipping real tmux test: tmux is unavailable");
+        return;
+    }
     let repo = RepoGuard::new();
     let binary = binary_path();
     let tmux = TmuxGuard::new(&repo.root, &binary);
