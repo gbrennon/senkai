@@ -63,6 +63,10 @@ impl CliEntrypoint {
     }
 
     pub fn run(&self, args: &[String]) {
+        if Self::should_render_help(args) {
+            print!("{}", CliArgs::render_help());
+            return;
+        }
         let (command, rest) = self.parse_args(args);
         let result = if command.is_tui() && !std::io::stdin().is_terminal() {
             self.spawn_in_popup(args)
@@ -73,6 +77,14 @@ impl CliEntrypoint {
         if let Err(error) = result {
             let _ = self.terminal.show_error(&format!("{error:#}"));
         }
+    }
+
+    fn should_render_help(args: &[String]) -> bool {
+        args.len() == 1
+            || args
+                .iter()
+                .skip(1)
+                .any(|argument| argument == "-h" || argument == "--help")
     }
 
     pub fn dispatch(&self, command: Command, rest: &[String]) -> Result<()> {

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{CommandFactory, Parser};
 
 use super::cli_command::CliCommand;
 
@@ -19,6 +19,10 @@ pub struct CliArgs {
 }
 
 impl CliArgs {
+    pub fn render_help() -> String {
+        Self::command().render_help().to_string()
+    }
+
     pub fn into_parts(self) -> (Option<PathBuf>, Option<CliCommand>) {
         (self.root, self.command)
     }

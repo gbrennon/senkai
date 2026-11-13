@@ -1,5 +1,6 @@
 mod tests {
     use std::env;
+    use std::process::Command as ProcessCommand;
 
     use senkai_core::selector::SelectionResult;
     use senkai_presentation::cli::Cli;
@@ -18,6 +19,31 @@ mod tests {
             Box::new(FakeSelector::new(vec![SelectionResult::Cancelled])),
             Box::new(FakeLoading::new()),
         )
+    }
+
+    fn usage_output(arguments: &[&str]) -> String {
+        let binary = env::var_os("CARGO_BIN_EXE_sk").expect("missing sk binary path");
+        let output = ProcessCommand::new(binary)
+            .args(arguments)
+            .output()
+            .expect("failed to run sk");
+        assert!(output.status.success());
+        String::from_utf8(output.stdout).expect("usage output was not UTF-8")
+    }
+
+    #[test]
+    fn no_arguments_render_usage() {
+        assert!(usage_output(&[]).contains("Usage: sk"));
+    }
+
+    #[test]
+    fn short_help_renders_usage() {
+        assert!(usage_output(&["-h"]).contains("Usage: sk"));
+    }
+
+    #[test]
+    fn long_help_renders_usage() {
+        assert!(usage_output(&["--help"]).contains("Usage: sk"));
     }
 
     #[test]
