@@ -68,7 +68,10 @@ impl CliEntrypoint {
             return;
         }
         let (command, rest) = self.parse_args(args);
-        let result = if command.is_tui() && !std::io::stdin().is_terminal() {
+        let result = if command.is_tui()
+            && !std::io::stdin().is_terminal()
+            && self.terminal.is_inside_tmux()
+        {
             self.spawn_in_popup(args)
                 .or_else(|_| self.dispatch(command, &rest))
         } else {
