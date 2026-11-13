@@ -88,6 +88,7 @@ Ensure `~/.local/bin` is in `PATH` before running `sk`.
 Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create or
 resume a named worktree, or use `sk choose` for a numbered terminal prompt. Use
 `sk tui`, `sk tui choose`, or `sk tui cleanup` when you want the Ratatui interface.
+Running `sk` without arguments, or with `-h` or `--help`, prints the CLI usage.
 
 SSH authentication uses the agent available when the plugin is loaded. The
 plugin persists `SSH_AUTH_SOCK` into the invoking tmux session environment so
