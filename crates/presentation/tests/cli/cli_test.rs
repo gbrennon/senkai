@@ -10,6 +10,7 @@ mod tests {
     use senkai_core::ports::MultiplexerPort;
     use senkai_core::selector::SelectionResult;
     use senkai_presentation::cli::Cli;
+    use senkai_presentation::cli::choose_worktree::ChooseWorktree;
     use senkai_presentation::cli::command::Command;
     use senkai_presentation::cli::repository_operations::RepositoryOperations;
 
@@ -191,6 +192,32 @@ mod tests {
         let result = cli.dispatch(Command::CreateWorktree, &["test-branch".to_string()]);
 
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn selecting_an_existing_worktree_opens_its_registered_path() {
+        let repository = tempfile::tempdir().unwrap();
+        let target = repository.path().join(".worktrees").join("feat-a");
+        std::fs::create_dir_all(&target).unwrap();
+        std::fs::create_dir(repository.path().join(".git")).unwrap();
+        let _state = ProcessStateGuard::new(repository.path());
+        let chooser = ChooseWorktree::new(
+            Rc::new(FakeTmxTest::outside_tmux(
+                &repository.path().to_string_lossy(),
+            )),
+            Rc::new(FakeGitForChoose::existing_worktree(
+                &repository.path().to_string_lossy(),
+                &target.to_string_lossy(),
+                "",
+            )),
+            Rc::new(FakeSelector::new(vec![SelectionResult::Selected(0)])),
+            Rc::new(FakeLoading::new()),
+        );
+
+        let result = chooser.run(None);
+
+        assert!(result.is_ok());
+        assert_eq!(std::env::current_dir().unwrap(), target);
     }
 
     #[test]
