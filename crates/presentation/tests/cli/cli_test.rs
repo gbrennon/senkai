@@ -221,6 +221,23 @@ mod tests {
     }
 
     #[test]
+    fn tui_runs_inline_outside_tmux() {
+        let repository = tempfile::tempdir().unwrap();
+        std::fs::create_dir(repository.path().join(".git")).unwrap();
+        let _state = ProcessStateGuard::new(repository.path());
+        let cli = Cli::new(
+            Box::new(FakeTmxTest::outside_tmux(
+                &repository.path().to_string_lossy(),
+            )),
+            Box::new(FakeGitPorcelain::new("")),
+            Box::new(FakeSelector::new(vec![SelectionResult::Cancelled])),
+            Box::new(FakeLoading::new()),
+        );
+
+        cli.run(&["sk".to_string(), "tui".to_string()]);
+    }
+
+    #[test]
     fn dispatch_choose_accepts_cancellation() {
         let repository = tempfile::tempdir().unwrap();
         std::fs::create_dir(repository.path().join(".git")).unwrap();
