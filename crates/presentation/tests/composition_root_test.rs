@@ -1,8 +1,7 @@
 use senkai_presentation::{Application, CompositionRoot};
 
-mod common;
-use common::fakes::git::StubGit;
-use common::fakes::tmux::StubTmx;
+use super::common::fakes::git::StubGit;
+use super::common::fakes::tmux::StubTmx;
 
 pub struct CompositionRootProbe;
 
