@@ -573,6 +573,7 @@ fn select_or_create_window_creates_new_window() {
         "",
         "",
     );
+    f.ok("tmux", "select-window:-t:wt-feat-foo", 0, "", "");
     f.ok(
         "tmux",
         "display-message:Created worktree: feat-foo",
@@ -625,6 +626,7 @@ fn select_or_create_window_scopes_new_window_to_invoking_pane() {
         "",
         "",
     );
+    f.ok("tmux", "select-window:-t:%7:wt-feat-bar", 0, "", "");
     f.ok(
         "tmux",
         "display-message:Created worktree: feat-bar",
