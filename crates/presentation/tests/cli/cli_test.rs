@@ -1,15 +1,12 @@
-#[path = "../common/mod.rs"]
-mod common;
-
 mod tests {
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use std::sync::{Mutex, MutexGuard, OnceLock};
 
-    use super::common::fakes::git::*;
-    use super::common::fakes::loading::*;
-    use super::common::fakes::selector::*;
-    use super::common::fakes::tmux::*;
+    use super::super::common::fakes::git::*;
+    use super::super::common::fakes::loading::*;
+    use super::super::common::fakes::selector::*;
+    use super::super::common::fakes::tmux::*;
     use senkai_core::ports::MultiplexerPort;
     use senkai_core::selector::SelectionResult;
     use senkai_presentation::cli::Cli;
