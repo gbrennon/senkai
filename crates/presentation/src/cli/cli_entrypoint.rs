@@ -14,7 +14,7 @@ use super::cleanup_worktrees::CleanupWorktrees;
 use super::cli_args::CliArgs;
 use super::cli_capabilities::CliCapabilities;
 use super::cli_command::{CliCommand, TuiCommand};
-use super::command::Command;
+use super::command::{Command, has_explicit_tui_argument};
 use super::create_worktree::CreateWorktree;
 use super::repository_locator::RepositoryLocator;
 
@@ -69,6 +69,7 @@ impl CliEntrypoint {
         }
         let (command, rest) = self.parse_args(args);
         let result = if command.is_tui()
+            && has_explicit_tui_argument(args)
             && !std::io::stdin().is_terminal()
             && self.terminal.is_inside_tmux()
         {
