@@ -12,6 +12,7 @@ mod tests {
     use senkai_presentation::cli::Cli;
     use senkai_presentation::cli::choose_worktree::ChooseWorktree;
     use senkai_presentation::cli::command::Command;
+    use senkai_presentation::cli::command::has_explicit_tui_argument;
     use senkai_presentation::cli::repository_operations::RepositoryOperations;
 
     static PROCESS_STATE: OnceLock<Mutex<()>> = OnceLock::new();
@@ -69,6 +70,41 @@ mod tests {
             Box::new(StubSelector),
             Box::new(FakeLoading::new()),
         )
+    }
+
+    #[test]
+    fn choose_does_not_request_a_tui_popup() {
+        assert!(!has_explicit_tui_argument(&[
+            "sk".to_string(),
+            "choose".to_string(),
+        ]));
+    }
+
+    #[test]
+    fn explicit_tui_choose_requests_a_tui_popup() {
+        assert!(has_explicit_tui_argument(&[
+            "sk".to_string(),
+            "tui".to_string(),
+            "choose".to_string(),
+        ]));
+    }
+
+    #[test]
+    fn explicit_tui_cleanup_requests_a_tui_popup() {
+        assert!(has_explicit_tui_argument(&[
+            "sk".to_string(),
+            "tui".to_string(),
+            "cleanup".to_string(),
+        ]));
+    }
+
+    #[test]
+    fn explicit_tui_demo_loading_requests_a_tui_popup() {
+        assert!(has_explicit_tui_argument(&[
+            "sk".to_string(),
+            "tui".to_string(),
+            "demo-loading".to_string(),
+        ]));
     }
 
     #[test]

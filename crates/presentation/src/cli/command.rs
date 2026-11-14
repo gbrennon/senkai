@@ -8,6 +8,10 @@ pub enum Command {
     TuiDemoLoading,
 }
 
+pub fn has_explicit_tui_argument(args: &[String]) -> bool {
+    args.iter().skip(1).any(|argument| argument == "tui")
+}
+
 impl Command {
     pub fn parse(value: &str) -> Self {
         match value {
