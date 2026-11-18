@@ -176,7 +176,7 @@ mod tests {
         assert_eq!(partial.text, Color::Yellow);
         assert_eq!(partial.border, Color::Green);
         assert_eq!(partial.highlight_fg, Color::White);
-        assert_eq!(partial.highlight_bg, Color::Green);
+        assert_eq!(partial.highlight_bg, Color::Rgb(0, 64, 0));
     }
 
     #[test]
