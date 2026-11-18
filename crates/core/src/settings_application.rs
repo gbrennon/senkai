@@ -37,21 +37,32 @@ mod tests {
     fn list_service_returns_setting_names() {
         let settings = Settings::from_values([("theme", "dark"), ("editor", "nvim")]);
 
-        assert_eq!(ListSettingsService.execute(&settings), vec!["editor", "theme"]);
+        assert_eq!(
+            ListSettingsService.execute(&settings),
+            vec!["editor", "theme"]
+        );
     }
 
     #[test]
     fn get_service_returns_a_copy_of_the_setting_value() {
         let settings = Settings::from_values([("theme", "dark")]);
 
-        assert_eq!(GetSettingValueService.execute(&settings, "theme").unwrap(), Some("dark".into()));
+        assert_eq!(
+            GetSettingValueService.execute(&settings, "theme").unwrap(),
+            Some("dark".into())
+        );
     }
 
     #[test]
     fn get_service_returns_none_for_an_unknown_setting() {
         let settings = Settings::new();
 
-        assert_eq!(GetSettingValueService.execute(&settings, "missing").unwrap(), None);
+        assert_eq!(
+            GetSettingValueService
+                .execute(&settings, "missing")
+                .unwrap(),
+            None
+        );
     }
 
     #[test]
