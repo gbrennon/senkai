@@ -3,6 +3,9 @@ pub enum Command {
     Choose,
     CreateWorktree,
     Cleanup,
+    SettingsList,
+    SettingsGet,
+    SettingsSet,
     TuiChoose,
     TuiCleanup,
     TuiDemoLoading,
@@ -17,6 +20,7 @@ impl Command {
         match value {
             "create-worktree" | "create" => Self::CreateWorktree,
             "cleanup" => Self::Cleanup,
+            "settings" => Self::SettingsList,
             "tui" => Self::TuiChoose,
             _ => Self::Choose,
         }
