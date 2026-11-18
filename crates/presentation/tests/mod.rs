@@ -6,4 +6,6 @@ mod cli;
 mod command;
 #[path = "composition_root_test.rs"]
 mod composition_root;
+#[path = "cli/settings_test.rs"]
+mod settings;
 mod tui;

@@ -13,6 +13,7 @@ pub mod repository_cleanup;
 pub mod repository_locator;
 pub mod repository_operations;
 pub mod repository_status;
+pub mod settings;
 pub mod worktree_runtime;
 
 pub use cli_args::CliArgs;
