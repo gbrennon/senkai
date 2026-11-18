@@ -139,7 +139,7 @@ mod tests {
         assert_eq!(Theme::default().prompt, Color::Reset);
         assert_eq!(Theme::default().header, Color::Reset);
         assert_eq!(Theme::default().highlight_fg, Color::White);
-        assert_eq!(Theme::default().highlight_bg, Color::Green);
+        assert_eq!(Theme::default().highlight_bg, Color::Rgb(0, 64, 0));
     }
 
     #[test]
