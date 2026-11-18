@@ -3,9 +3,11 @@ pub mod multiplexer_port;
 pub mod repository_port;
 pub mod selector_port;
 pub mod settings_port;
+pub mod settings_repository_port;
 
 pub use crate::ports::loading_port::LoadingRunner;
 pub use crate::ports::multiplexer_port::MultiplexerPort;
 pub use crate::ports::repository_port::RepositoryPort;
 pub use crate::ports::selector_port::SelectorRunner;
 pub use crate::ports::settings_port::{GetSettingValue, ListSettings, SetSettingValue};
+pub use crate::ports::settings_repository_port::SettingsRepository;
