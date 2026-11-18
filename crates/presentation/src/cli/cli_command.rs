@@ -44,4 +44,6 @@ pub enum TuiCommand {
     Cleanup,
     #[command(name = "demo-loading")]
     DemoLoading,
+    #[command(name = "settings")]
+    Settings,
 }

@@ -20,6 +20,7 @@ use super::command::{Command, has_explicit_tui_argument};
 use super::create_worktree::CreateWorktree;
 use super::repository_locator::RepositoryLocator;
 use super::settings::{SettingsAction, SettingsCli};
+use crate::tui::SettingsTui;
 
 pub struct CliEntrypoint {
     terminal: Rc<dyn MultiplexerPort>,
@@ -153,6 +154,14 @@ impl CliEntrypoint {
                 name: rest.first().cloned().unwrap_or_default(),
                 value: rest.get(1).cloned().unwrap_or_default(),
             }),
+            Command::TuiSettings => {
+                let repository = self
+                    .settings_repository
+                    .as_ref()
+                    .ok_or_else(|| senkai_core::error::Error::new("Settings are not configured"))?;
+                let settings = repository.load()?;
+                SettingsTui::new(Rc::clone(&self.tui_selector)).run(&settings)
+            }
             Command::TuiDemoLoading => self.tui_loading.run_loading(
                 "Demo: loading indicator test…",
                 Box::new(|| {
@@ -201,6 +210,7 @@ impl CliEntrypoint {
                         None | Some(TuiCommand::Choose) => (Command::TuiChoose, Vec::new()),
                         Some(TuiCommand::Cleanup) => (Command::TuiCleanup, Vec::new()),
                         Some(TuiCommand::DemoLoading) => (Command::TuiDemoLoading, Vec::new()),
+                        Some(TuiCommand::Settings) => (Command::TuiSettings, Vec::new()),
                     },
                 }
             }

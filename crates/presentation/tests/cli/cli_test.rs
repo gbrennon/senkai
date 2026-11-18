@@ -164,6 +164,11 @@ mod tests {
             .0,
             Command::TuiDemoLoading
         );
+        assert_eq!(
+            cli.parse_args(&["sk".to_string(), "tui".to_string(), "settings".to_string(),])
+                .0,
+            Command::TuiSettings
+        );
     }
 
     #[test]
