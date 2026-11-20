@@ -9,6 +9,7 @@ pub enum Command {
     TuiChoose,
     TuiCleanup,
     TuiDemoLoading,
+    TuiSettings,
 }
 
 pub fn has_explicit_tui_argument(args: &[String]) -> bool {
@@ -34,13 +35,14 @@ impl Command {
                 | Self::TuiChoose
                 | Self::TuiCleanup
                 | Self::TuiDemoLoading
+                | Self::TuiSettings
         )
     }
 
     pub fn is_tui(self) -> bool {
         matches!(
             self,
-            Self::TuiChoose | Self::TuiCleanup | Self::TuiDemoLoading
+            Self::TuiChoose | Self::TuiCleanup | Self::TuiDemoLoading | Self::TuiSettings
         )
     }
 }
