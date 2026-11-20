@@ -25,7 +25,7 @@ metaphor for rotating your tmux workspace between Git worktrees.
 - Keep managing external worktrees: switch to them, inspect their branches,
   and remove them through the same cleanup flow.
 - Customize the worktree directory, keybindings, and shell used by new windows.
-- Inspect and update persisted settings from the command line.
+- Inspect persisted settings from the command line or TUI.
 - Clean up merged or stale worktrees without leaving tmux windows behind.
 
 **Demo**: `prefix + W` opens a picker — type a branch name, press Enter, and
@@ -94,8 +94,8 @@ Ensure `~/.local/bin` is in `PATH` before running `sk`.
 Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create or
 resume a named worktree, or use `sk choose` for a numbered terminal prompt. Use
 `sk settings list`, `sk settings get <name>`, and `sk settings set <name> <value>`
-to manage persisted settings. Use `sk tui`, `sk tui choose`, or `sk tui cleanup`
-when you want the Ratatui interface.
+to manage persisted settings. Use `sk tui`, `sk tui choose`, `sk tui cleanup`, or
+`sk tui settings` when you want the Ratatui interface.
 Running `sk` without arguments, or with `-h` or `--help`, prints the CLI usage.
 
 SSH authentication uses the agent available when the plugin is loaded. The
