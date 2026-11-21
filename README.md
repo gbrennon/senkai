@@ -91,11 +91,12 @@ sk tui
 
 Ensure `~/.local/bin` is in `PATH` before running `sk`.
 
-Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create or
-resume a named worktree, or use `sk choose` for a numbered terminal prompt. Use
-`sk settings list`, `sk settings get <name>`, and `sk settings set <name> <value>`
-to manage persisted settings. Use `sk tui`, `sk tui choose`, `sk tui cleanup`, or
-`sk tui settings` when you want the Ratatui interface.
+Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create a
+worktree, or use `sk choose` to select an existing worktree from a numbered
+terminal prompt. Use `sk settings list`, `sk settings get <name>`, and
+`sk settings set <name> <value>` to manage persisted settings. Use `sk tui`,
+`sk tui choose`, `sk tui cleanup`, or `sk tui settings` when you want the
+Ratatui interface.
 Running `sk` without arguments, or with `-h` or `--help`, prints the CLI usage.
 
 Outside tmux, an executable cannot change the parent shell's directory. Source
