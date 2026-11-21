@@ -3,9 +3,13 @@ pub enum Command {
     Choose,
     CreateWorktree,
     Cleanup,
+    SettingsList,
+    SettingsGet,
+    SettingsSet,
     TuiChoose,
     TuiCleanup,
     TuiDemoLoading,
+    TuiSettings,
 }
 
 pub fn has_explicit_tui_argument(args: &[String]) -> bool {
@@ -17,6 +21,7 @@ impl Command {
         match value {
             "create-worktree" | "create" => Self::CreateWorktree,
             "cleanup" => Self::Cleanup,
+            "settings" => Self::SettingsList,
             "tui" => Self::TuiChoose,
             _ => Self::Choose,
         }
@@ -30,13 +35,14 @@ impl Command {
                 | Self::TuiChoose
                 | Self::TuiCleanup
                 | Self::TuiDemoLoading
+                | Self::TuiSettings
         )
     }
 
     pub fn is_tui(self) -> bool {
         matches!(
             self,
-            Self::TuiChoose | Self::TuiCleanup | Self::TuiDemoLoading
+            Self::TuiChoose | Self::TuiCleanup | Self::TuiDemoLoading | Self::TuiSettings
         )
     }
 }

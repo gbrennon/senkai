@@ -164,6 +164,43 @@ mod tests {
             .0,
             Command::TuiDemoLoading
         );
+        assert_eq!(
+            cli.parse_args(&["sk".to_string(), "tui".to_string(), "settings".to_string(),])
+                .0,
+            Command::TuiSettings
+        );
+    }
+
+    #[test]
+    fn parse_args_maps_settings_commands() {
+        let cli = cli_default(StubTmx, StubGit);
+
+        assert_eq!(
+            cli.parse_args(&["sk".to_string(), "settings".to_string()]),
+            (Command::SettingsList, Vec::new())
+        );
+        assert_eq!(
+            cli.parse_args(&[
+                "sk".to_string(),
+                "settings".to_string(),
+                "get".to_string(),
+                "theme".to_string(),
+            ]),
+            (Command::SettingsGet, vec!["theme".to_string()])
+        );
+        assert_eq!(
+            cli.parse_args(&[
+                "sk".to_string(),
+                "settings".to_string(),
+                "set".to_string(),
+                "theme".to_string(),
+                "dark".to_string(),
+            ]),
+            (
+                Command::SettingsSet,
+                vec!["theme".to_string(), "dark".to_string()]
+            )
+        );
     }
 
     #[test]

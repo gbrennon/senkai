@@ -6,17 +6,21 @@ use std::time::Duration;
 
 use clap::Parser;
 use senkai_core::error::Result;
-use senkai_core::ports::{LoadingRunner, MultiplexerPort, RepositoryPort, SelectorRunner};
+use senkai_core::ports::{
+    LoadingRunner, MultiplexerPort, RepositoryPort, SelectorRunner, SettingsRepository,
+};
 use senkai_core::shell_quoter::ShellQuoter;
 
 use super::choose_worktree::ChooseWorktree;
 use super::cleanup_worktrees::CleanupWorktrees;
 use super::cli_args::CliArgs;
 use super::cli_capabilities::CliCapabilities;
-use super::cli_command::{CliCommand, TuiCommand};
+use super::cli_command::{CliCommand, SettingsCommand, TuiCommand};
 use super::command::{Command, has_explicit_tui_argument};
 use super::create_worktree::CreateWorktree;
 use super::repository_locator::RepositoryLocator;
+use super::settings::{SettingsAction, SettingsCli};
+use crate::tui::SettingsTui;
 
 pub struct CliEntrypoint {
     terminal: Rc<dyn MultiplexerPort>,
@@ -25,6 +29,7 @@ pub struct CliEntrypoint {
     tui_selector: Rc<dyn SelectorRunner>,
     loading: Rc<dyn LoadingRunner>,
     tui_loading: Rc<dyn LoadingRunner>,
+    settings_repository: Option<Rc<dyn SettingsRepository>>,
 }
 
 impl CliEntrypoint {
@@ -43,6 +48,7 @@ impl CliEntrypoint {
             tui_selector: selector,
             loading: Rc::clone(&loading),
             tui_loading: loading,
+            settings_repository: None,
         }
     }
 
@@ -59,7 +65,19 @@ impl CliEntrypoint {
             tui_selector: Rc::from(tui_selector),
             loading: Rc::from(loading),
             tui_loading: Rc::from(tui_loading),
+            settings_repository: None,
         }
+    }
+
+    pub fn new_with_capabilities_and_settings(
+        terminal: Box<dyn MultiplexerPort>,
+        repository: Box<dyn RepositoryPort>,
+        capabilities: CliCapabilities,
+        settings_repository: Box<dyn SettingsRepository>,
+    ) -> Self {
+        let mut entrypoint = Self::new_with_capabilities(terminal, repository, capabilities);
+        entrypoint.settings_repository = Some(Rc::from(settings_repository));
+        entrypoint
     }
 
     pub fn run(&self, args: &[String]) {
@@ -128,6 +146,22 @@ impl CliEntrypoint {
                 Rc::clone(&self.tui_loading),
             )
             .run(),
+            Command::SettingsList => self.run_settings(SettingsAction::List),
+            Command::SettingsGet => self.run_settings(SettingsAction::Get {
+                name: rest.first().cloned().unwrap_or_default(),
+            }),
+            Command::SettingsSet => self.run_settings(SettingsAction::Set {
+                name: rest.first().cloned().unwrap_or_default(),
+                value: rest.get(1).cloned().unwrap_or_default(),
+            }),
+            Command::TuiSettings => {
+                let repository = self
+                    .settings_repository
+                    .as_ref()
+                    .ok_or_else(|| senkai_core::error::Error::new("Settings are not configured"))?;
+                let settings = repository.load()?;
+                SettingsTui::new(Rc::clone(&self.tui_selector)).run(&settings)
+            }
             Command::TuiDemoLoading => self.tui_loading.run_loading(
                 "Demo: loading indicator test…",
                 Box::new(|| {
@@ -136,6 +170,14 @@ impl CliEntrypoint {
                 }),
             ),
         }
+    }
+
+    fn run_settings(&self, action: SettingsAction) -> Result<()> {
+        let repository = self
+            .settings_repository
+            .as_ref()
+            .ok_or_else(|| senkai_core::error::Error::new("Settings are not configured"))?;
+        SettingsCli::new(Rc::clone(repository)).run(action)
     }
 
     pub fn parse_args(&self, args: &[String]) -> (Command, Vec<String>) {
@@ -157,10 +199,18 @@ impl CliEntrypoint {
                         (Command::CreateWorktree, branch.into_iter().collect())
                     }
                     Some(CliCommand::Cleanup) => (Command::Cleanup, Vec::new()),
+                    Some(CliCommand::Settings { command }) => match command {
+                        None | Some(SettingsCommand::List) => (Command::SettingsList, Vec::new()),
+                        Some(SettingsCommand::Get { name }) => (Command::SettingsGet, vec![name]),
+                        Some(SettingsCommand::Set { name, value }) => {
+                            (Command::SettingsSet, vec![name, value])
+                        }
+                    },
                     Some(CliCommand::Tui { command }) => match command {
                         None | Some(TuiCommand::Choose) => (Command::TuiChoose, Vec::new()),
                         Some(TuiCommand::Cleanup) => (Command::TuiCleanup, Vec::new()),
                         Some(TuiCommand::DemoLoading) => (Command::TuiDemoLoading, Vec::new()),
+                        Some(TuiCommand::Settings) => (Command::TuiSettings, Vec::new()),
                     },
                 }
             }

@@ -17,7 +17,7 @@ pub(crate) const BORDER: Color = Color::Green;
 pub(crate) const PROMPT: Color = Color::Reset;
 pub(crate) const HEADER: Color = Color::Reset;
 pub(crate) const HIGHLIGHT_FG: Color = Color::White;
-pub(crate) const HIGHLIGHT_BG: Color = Color::Green;
+pub(crate) const HIGHLIGHT_BG: Color = Color::Rgb(0, 64, 0);
 pub(crate) const HIGHLIGHT_MODIFIER: Modifier = Modifier::BOLD;
 
 impl Default for Theme {
