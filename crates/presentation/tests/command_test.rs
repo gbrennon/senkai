@@ -29,6 +29,7 @@ mod tests {
     #[test]
     fn interactive_commands() {
         assert!(Command::Choose.is_interactive());
+        assert!(Command::ChoosePath.is_interactive());
         assert!(Command::Cleanup.is_interactive());
         assert!(Command::TuiChoose.is_interactive());
         assert!(!Command::CreateWorktree.is_interactive());
@@ -39,5 +40,6 @@ mod tests {
         assert!(Command::TuiChoose.is_tui());
         assert!(Command::TuiCleanup.is_tui());
         assert!(!Command::Choose.is_tui());
+        assert!(!Command::ChoosePath.is_tui());
     }
 }

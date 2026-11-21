@@ -36,10 +36,22 @@ impl CreateWorktree {
     }
 
     pub fn run(&self, branch: &str) -> Result<()> {
+        self.run_internal(branch, false)
+    }
+
+    pub fn run_with_path_output(&self, branch: &str) -> Result<()> {
+        self.run_internal(branch, true)
+    }
+
+    fn run_internal(&self, branch: &str, print_path: bool) -> Result<()> {
         let Some(target) = self.prepare(branch)? else {
             return Ok(());
         };
-        self.runtime.open(branch, &target)
+        if print_path {
+            self.runtime.open_with_path_output(branch, &target, true)
+        } else {
+            self.runtime.open(branch, &target)
+        }
     }
 
     pub fn prepare(&self, branch: &str) -> Result<Option<PathBuf>> {

@@ -128,6 +128,19 @@ mod tests {
         assert_eq!(command, Command::Choose);
         assert_eq!(rest, vec!["feature/name"]);
     }
+    #[test]
+    fn parse_args_extracts_choose_print_path() {
+        let cli = cli_default(StubTmx, StubGit);
+        let (command, rest) = cli.parse_args(&[
+            "sk".to_string(),
+            "choose".to_string(),
+            "--print-path".to_string(),
+            "feature/name".to_string(),
+        ]);
+
+        assert_eq!(command, Command::ChoosePath);
+        assert_eq!(rest, vec!["feature/name"]);
+    }
 
     #[test]
     fn parse_args_extracts_create_branch() {
@@ -139,6 +152,20 @@ mod tests {
         ]);
 
         assert_eq!(command, Command::CreateWorktree);
+        assert_eq!(rest, vec!["feat/foo"]);
+    }
+
+    #[test]
+    fn parse_args_extracts_create_print_path() {
+        let cli = cli_default(StubTmx, StubGit);
+        let (command, rest) = cli.parse_args(&[
+            "sk".to_string(),
+            "create-worktree".to_string(),
+            "--print-path".to_string(),
+            "feat/foo".to_string(),
+        ]);
+
+        assert_eq!(command, Command::CreateWorktreePath);
         assert_eq!(rest, vec!["feat/foo"]);
     }
 
@@ -263,6 +290,14 @@ mod tests {
     fn dispatch_create_worktree_succeeds() {
         let cli = cli_default(FakeTmxCreateSuccess, FakeGitCreate);
         let result = cli.dispatch(Command::CreateWorktree, &["test-branch".to_string()]);
+
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn dispatch_choose_print_path_preserves_tmux_window_behavior() {
+        let cli = cli_default(FakeTmxCreateSuccess, FakeGitCreate);
+        let result = cli.dispatch(Command::ChoosePath, &["test-branch".to_string()]);
 
         assert!(result.is_ok());
     }

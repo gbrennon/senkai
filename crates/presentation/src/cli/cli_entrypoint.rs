@@ -118,6 +118,13 @@ impl CliEntrypoint {
                 Rc::clone(&self.loading),
             )
             .run(rest.first().map(String::as_str)),
+            Command::ChoosePath => ChooseWorktree::new(
+                Rc::clone(&self.terminal),
+                Rc::clone(&self.repository),
+                Rc::clone(&self.selector),
+                Rc::clone(&self.loading),
+            )
+            .run_with_path_output(rest.first().map(String::as_str)),
             Command::TuiChoose => ChooseWorktree::new(
                 Rc::clone(&self.terminal),
                 Rc::clone(&self.repository),
@@ -132,6 +139,13 @@ impl CliEntrypoint {
                 Rc::clone(&self.loading),
             )
             .run(rest.first().map(String::as_str).unwrap_or_default()),
+            Command::CreateWorktreePath => CreateWorktree::new(
+                Rc::clone(&self.terminal),
+                Rc::clone(&self.repository),
+                Rc::clone(&self.selector),
+                Rc::clone(&self.loading),
+            )
+            .run_with_path_output(rest.first().map(String::as_str).unwrap_or_default()),
             Command::Cleanup => CleanupWorktrees::new(
                 Rc::clone(&self.terminal),
                 Rc::clone(&self.repository),
@@ -192,11 +206,21 @@ impl CliEntrypoint {
                 }
                 match command {
                     None => (Command::Choose, Vec::new()),
-                    Some(CliCommand::Choose { name }) => {
-                        (Command::Choose, name.into_iter().collect())
+                    Some(CliCommand::Choose { name, print_path }) => {
+                        let command = if print_path {
+                            Command::ChoosePath
+                        } else {
+                            Command::Choose
+                        };
+                        (command, name.into_iter().collect())
                     }
-                    Some(CliCommand::CreateWorktree { branch }) => {
-                        (Command::CreateWorktree, branch.into_iter().collect())
+                    Some(CliCommand::CreateWorktree { branch, print_path }) => {
+                        let command = if print_path {
+                            Command::CreateWorktreePath
+                        } else {
+                            Command::CreateWorktree
+                        };
+                        (command, branch.into_iter().collect())
                     }
                     Some(CliCommand::Cleanup) => (Command::Cleanup, Vec::new()),
                     Some(CliCommand::Settings { command }) => match command {
