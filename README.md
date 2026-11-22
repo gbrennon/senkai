@@ -91,13 +91,31 @@ sk tui
 
 Ensure `~/.local/bin` is in `PATH` before running `sk`.
 
-Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create or
-resume a named worktree, or use `sk choose` for a numbered terminal prompt. Use
-`sk settings list`, `sk settings get <name>`, and `sk settings set <name> <value>`
-to manage persisted settings. Use `sk tui`, `sk tui choose`, `sk tui cleanup`, or
-`sk tui settings` when you want the Ratatui interface.
+Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create a
+worktree, or use `sk choose` to select an existing worktree from a numbered
+terminal prompt. Use `sk settings list`, `sk settings get <name>`, and
+`sk settings set <name> <value>` to manage persisted settings. Use `sk tui`,
+`sk tui choose`, `sk tui cleanup`, or `sk tui settings` when you want the
+Ratatui interface.
 Running `sk` without arguments, or with `-h` or `--help`, prints the CLI usage.
 
+Outside tmux, an executable cannot change the parent shell's directory. Source
+the shell wrapper to make `sk choose` and `sk create-worktree` change the
+calling shell's directory:
+
+```bash
+source /path/to/senkai/senkai.sh
+sk choose <name>
+```
+
+The wrapper keeps the normal tmux behavior: inside tmux, these commands open or
+select a `wt-<branch>` window at the selected worktree. Without the wrapper,
+use `--print-path` with command substitution when the shell should change
+directory:
+
+```bash
+cd "$(sk choose --print-path <name>)"
+```
 SSH authentication uses the agent available when the plugin is loaded. The
 plugin persists `SSH_AUTH_SOCK` into the invoking tmux session environment so
 Git fetches from worktree windows reuse your loaded SSH keys instead of

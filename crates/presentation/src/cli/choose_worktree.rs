@@ -43,6 +43,14 @@ impl ChooseWorktree {
     }
 
     pub fn run(&self, name: Option<&str>) -> Result<()> {
+        self.run_internal(name, false)
+    }
+
+    pub fn run_with_path_output(&self, name: Option<&str>) -> Result<()> {
+        self.run_internal(name, true)
+    }
+
+    fn run_internal(&self, name: Option<&str>, print_path: bool) -> Result<()> {
         let repository_root = self
             .locator
             .locate()
@@ -50,12 +58,20 @@ impl ChooseWorktree {
         let repository_root_path = Path::new(&repository_root);
         std::env::set_current_dir(repository_root_path)?;
         if let Some(name) = name {
-            return self.create_worktree(name);
+            return self.create_worktree_with_path_output(name, print_path);
         }
-        self.select_existing(repository_root_path)
+        self.select_existing_with_path_output(repository_root_path, print_path)
     }
 
     pub fn select_existing(&self, repository_root: &Path) -> Result<()> {
+        self.select_existing_with_path_output(repository_root, false)
+    }
+
+    fn select_existing_with_path_output(
+        &self,
+        repository_root: &Path,
+        print_path: bool,
+    ) -> Result<()> {
         let existing = self
             .operations
             .list(repository_root)?
@@ -75,13 +91,22 @@ impl ChooseWorktree {
             "Type to filter, Enter to select/create"
         };
         let selection = self.selector.select(names, true, "Worktree> ", header)?;
-        self.choose(selection, &existing)
+        self.choose_with_path_output(selection, &existing, print_path)
     }
 
     pub fn choose(
         &self,
         selection: SelectionResult,
         existing: &[(String, std::path::PathBuf)],
+    ) -> Result<()> {
+        self.choose_with_path_output(selection, existing, false)
+    }
+
+    fn choose_with_path_output(
+        &self,
+        selection: SelectionResult,
+        existing: &[(String, std::path::PathBuf)],
+        print_path: bool,
     ) -> Result<()> {
         match selection {
             SelectionResult::Selected(index) => {
@@ -90,20 +115,31 @@ impl ChooseWorktree {
                     .operations
                     .branch(worktree_path)
                     .unwrap_or_else(|_| display_name.clone());
-                self.runtime.open(&branch, worktree_path)
+                self.runtime
+                    .open_with_path_output(&branch, worktree_path, print_path)
             }
-            SelectionResult::Custom(branch) => self.create_worktree(&branch),
+            SelectionResult::Custom(branch) => {
+                self.create_worktree_with_path_output(&branch, print_path)
+            }
             SelectionResult::SelectedMany(_) | SelectionResult::Cancelled => Ok(()),
         }
     }
 
     pub fn create_worktree(&self, branch: &str) -> Result<()> {
-        CreateWorktree::new(
+        self.create_worktree_with_path_output(branch, false)
+    }
+
+    fn create_worktree_with_path_output(&self, branch: &str, print_path: bool) -> Result<()> {
+        let create = CreateWorktree::new(
             Rc::clone(&self.terminal),
             Rc::clone(&self.repository),
             Rc::clone(&self.selector),
             Rc::clone(&self.loading),
-        )
-        .run(branch)
+        );
+        if print_path {
+            create.run_with_path_output(branch)
+        } else {
+            create.run(branch)
+        }
     }
 }

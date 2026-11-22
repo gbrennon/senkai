@@ -48,12 +48,12 @@ impl SelectorRunner for PlainSelector {
         prompt: &str,
         header: &str,
     ) -> Result<SelectionResult> {
-        println!("{header}");
+        eprintln!("{header}");
         items
             .iter()
             .enumerate()
-            .for_each(|(index, item)| println!("{}: {item}", index + 1));
-        println!("{prompt} Enter a number or name:");
+            .for_each(|(index, item)| eprintln!("{}: {item}", index + 1));
+        eprintln!("{prompt} Enter a number or name:");
         PlainSelection::single(&(self.input)()?, &items, allow_custom)
     }
 
@@ -63,12 +63,12 @@ impl SelectorRunner for PlainSelector {
         prompt: &str,
         header: &str,
     ) -> Result<SelectionResult> {
-        println!("{header}");
+        eprintln!("{header}");
         items
             .iter()
             .enumerate()
-            .for_each(|(index, item)| println!("{}: {item}", index + 1));
-        println!("{prompt} Enter numbers separated by commas:");
+            .for_each(|(index, item)| eprintln!("{}: {item}", index + 1));
+        eprintln!("{prompt} Enter numbers separated by commas:");
         PlainSelection::many(&(self.input)()?, items.len())
     }
 }

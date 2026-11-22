@@ -6,11 +6,15 @@ pub enum CliCommand {
     Choose {
         #[arg(value_name = "NAME")]
         name: Option<String>,
+        #[arg(long)]
+        print_path: bool,
     },
     #[command(name = "create-worktree", alias = "create")]
     CreateWorktree {
         #[arg(value_name = "BRANCH")]
         branch: Option<String>,
+        #[arg(long)]
+        print_path: bool,
     },
     #[command(name = "cleanup")]
     Cleanup,

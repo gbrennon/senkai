@@ -1,6 +1,7 @@
 mod tests {
     use std::env;
-    use std::process::Command as ProcessCommand;
+    use std::io::Write;
+    use std::process::{Command as ProcessCommand, Stdio};
 
     use senkai_core::selector::SelectionResult;
     use senkai_presentation::cli::Cli;
@@ -29,6 +30,129 @@ mod tests {
             .expect("failed to run sk");
         assert!(output.status.success());
         String::from_utf8(output.stdout).expect("usage output was not UTF-8")
+    }
+    fn run_git(repository: &std::path::Path, arguments: &[&str]) {
+        let output = ProcessCommand::new("git")
+            .args(arguments)
+            .current_dir(repository)
+            .output()
+            .expect("failed to run git");
+        assert!(
+            output.status.success(),
+            "git failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    fn print_path_outputs_selected_worktree_path_outside_tmux() {
+        let repository = tempdir().unwrap();
+        run_git(repository.path(), &["init", "-q"]);
+        run_git(
+            repository.path(),
+            &["config", "user.email", "test@example.com"],
+        );
+        run_git(repository.path(), &["config", "user.name", "test"]);
+        std::fs::write(repository.path().join("README.md"), "test\n").unwrap();
+        run_git(repository.path(), &["add", "README.md"]);
+        run_git(repository.path(), &["commit", "-qm", "initial"]);
+
+        let target = repository.path().join(".worktrees").join("feature");
+        run_git(
+            repository.path(),
+            &[
+                "worktree",
+                "add",
+                "-q",
+                ".worktrees/feature",
+                "-b",
+                "feature",
+            ],
+        );
+
+        let binary = env::var_os("CARGO_BIN_EXE_sk").expect("missing sk binary path");
+        let output = ProcessCommand::new(binary)
+            .args(["choose", "--print-path", "feature"])
+            .current_dir(repository.path())
+            .env_remove("TMUX")
+            .env_remove("TMUX_PANE")
+            .env_remove("SENKAI_ROOT")
+            .env_remove("TMUX_WORKTREES_ROOT")
+            .output()
+            .expect("failed to run sk");
+
+        assert!(
+            output.status.success(),
+            "sk failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            String::from_utf8(output.stdout).unwrap(),
+            format!("{}\n", target.display())
+        );
+    }
+
+    #[test]
+    fn interactive_print_path_writes_only_selected_path_to_stdout() {
+        let repository = tempdir().unwrap();
+        run_git(repository.path(), &["init", "-q"]);
+        run_git(
+            repository.path(),
+            &["config", "user.email", "test@example.com"],
+        );
+        run_git(repository.path(), &["config", "user.name", "test"]);
+        std::fs::write(repository.path().join("README.md"), "test\n").unwrap();
+        run_git(repository.path(), &["add", "README.md"]);
+        run_git(repository.path(), &["commit", "-qm", "initial"]);
+
+        let target = repository.path().join(".worktrees").join("feature");
+        run_git(
+            repository.path(),
+            &[
+                "worktree",
+                "add",
+                "-q",
+                ".worktrees/feature",
+                "-b",
+                "feature",
+            ],
+        );
+
+        let binary = env::var_os("CARGO_BIN_EXE_sk").expect("missing sk binary path");
+        let mut child = ProcessCommand::new(binary)
+            .args(["choose", "--print-path"])
+            .current_dir(repository.path())
+            .env_remove("TMUX")
+            .env_remove("TMUX_PANE")
+            .env_remove("SENKAI_ROOT")
+            .env_remove("TMUX_WORKTREES_ROOT")
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("failed to run sk");
+        child
+            .stdin
+            .take()
+            .expect("missing child stdin")
+            .write_all(b"1\n")
+            .expect("failed to select worktree");
+        let output = child.wait_with_output().expect("failed to wait for sk");
+
+        assert!(
+            output.status.success(),
+            "sk failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            String::from_utf8(output.stdout).unwrap(),
+            format!("{}\n", target.display())
+        );
+        assert!(
+            String::from_utf8(output.stderr)
+                .unwrap()
+                .contains("Worktree>")
+        );
     }
 
     #[test]

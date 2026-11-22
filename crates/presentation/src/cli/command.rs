@@ -1,7 +1,9 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
     Choose,
+    ChoosePath,
     CreateWorktree,
+    CreateWorktreePath,
     Cleanup,
     SettingsList,
     SettingsGet,
@@ -31,6 +33,7 @@ impl Command {
         matches!(
             self,
             Self::Choose
+                | Self::ChoosePath
                 | Self::Cleanup
                 | Self::TuiChoose
                 | Self::TuiCleanup
