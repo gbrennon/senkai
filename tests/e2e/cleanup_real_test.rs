@@ -52,12 +52,7 @@ struct TmuxGuard {
 
 impl TmuxGuard {
     fn new(root: &Path, binary: &Path) -> Self {
-        let nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let socket = format!("senkai-e2e-{}-{nonce}", std::process::id());
-        let _ = tmux_command(&socket, &["kill-server"]);
+        let socket = unique_socket();
         let root = root.to_str().unwrap();
         let binary = binary.to_str().unwrap();
         let output = tmux_command(&socket, &["new-session", "-d", "-s", "cleanup", "-c", root]);
@@ -72,12 +67,7 @@ impl TmuxGuard {
     }
 
     fn start_worktree(root: &Path, binary: &Path, branch: &str) -> Self {
-        let nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let socket = format!("senkai-e2e-{}-{nonce}", std::process::id());
-        let _ = tmux_command(&socket, &["kill-server"]);
+        let socket = unique_socket();
         let root = root.to_str().unwrap();
         let output = tmux_command(
             &socket,
@@ -220,6 +210,14 @@ impl Drop for TmuxGuard {
     fn drop(&mut self) {
         let _ = tmux_command(&self.socket, &["kill-server"]);
     }
+}
+
+fn unique_socket() -> String {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    format!("senkai-e2e-{}-{nonce}", std::process::id())
 }
 
 fn binary_path() -> PathBuf {
