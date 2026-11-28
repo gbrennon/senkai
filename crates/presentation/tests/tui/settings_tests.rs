@@ -33,5 +33,9 @@ mod tests {
             selector_impl.calls.borrow().as_slice(),
             &[vec!["editor = vim".to_string(), "theme = dark".to_string()]]
         );
+        assert_eq!(
+            selector_impl.prompts.borrow().as_slice(),
+            &[("Settings> ".to_string(), "Esc to close".to_string())]
+        );
     }
 }
