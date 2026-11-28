@@ -2,17 +2,10 @@ use clap::Subcommand;
 
 #[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
 pub enum CliCommand {
-    #[command(name = "choose")]
-    Choose {
+    #[command(name = "switch", aliases = ["choose", "checkout", "jump"])]
+    Switch {
         #[arg(value_name = "NAME")]
         name: Option<String>,
-        #[arg(long)]
-        print_path: bool,
-    },
-    #[command(name = "create-worktree", alias = "create")]
-    CreateWorktree {
-        #[arg(value_name = "BRANCH")]
-        branch: Option<String>,
         #[arg(long)]
         print_path: bool,
     },

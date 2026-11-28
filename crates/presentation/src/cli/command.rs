@@ -2,8 +2,6 @@
 pub enum Command {
     Choose,
     ChoosePath,
-    CreateWorktree,
-    CreateWorktreePath,
     Cleanup,
     SettingsList,
     SettingsGet,
@@ -19,16 +17,6 @@ pub fn has_explicit_tui_argument(args: &[String]) -> bool {
 }
 
 impl Command {
-    pub fn parse(value: &str) -> Self {
-        match value {
-            "create-worktree" | "create" => Self::CreateWorktree,
-            "cleanup" => Self::Cleanup,
-            "settings" => Self::SettingsList,
-            "tui" => Self::TuiChoose,
-            _ => Self::Choose,
-        }
-    }
-
     pub fn is_interactive(self) -> bool {
         matches!(
             self,

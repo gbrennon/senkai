@@ -47,11 +47,7 @@ impl CreateWorktree {
         let Some(target) = self.prepare(branch)? else {
             return Ok(());
         };
-        if print_path {
-            self.runtime.open_with_path_output(branch, &target, true)
-        } else {
-            self.runtime.open(branch, &target)
-        }
+        self.runtime.open(branch, &target, print_path)
     }
 
     pub fn prepare(&self, branch: &str) -> Result<Option<PathBuf>> {
@@ -71,7 +67,6 @@ impl CreateWorktree {
             .locate()
             .map_err(|error| Error::new(format!("Failed to find repository root: {error}")))?;
         let repository_root_path = Path::new(&repository_root);
-        std::env::set_current_dir(repository_root_path)?;
         let worktree_dir = self.terminal.resolve_worktree_dir();
         let project_locator = senkai_core::project_locator::ProjectLocator;
         project_locator.ensure_worktree_directory(repository_root_path, &worktree_dir)?;

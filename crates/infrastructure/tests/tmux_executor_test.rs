@@ -233,6 +233,35 @@ mod tests {
     }
 
     #[test]
+    fn target_pane_uses_current_session_for_window_operations() {
+        let runner = RecordingRunner::default();
+        let calls = runner.calls.clone();
+
+        executor_with(runner)
+            .select_or_create_window("test-branch", "/tmp", "bash")
+            .unwrap();
+
+        let calls = calls.lock().unwrap();
+        assert!(calls.iter().any(|call| {
+            call == &vec![
+                "new-window".to_string(),
+                "-n".to_string(),
+                "wt-test-branch".to_string(),
+                "-c".to_string(),
+                "/tmp".to_string(),
+                "bash".to_string(),
+            ]
+        }));
+        assert!(calls.iter().any(|call| {
+            call == &vec![
+                "select-window".to_string(),
+                "-t".to_string(),
+                "wt-test-branch".to_string(),
+            ]
+        }));
+    }
+
+    #[test]
     fn tmux_executor_can_show_environment() {
         let socket = match ensure_test_server() {
             Some(s) => s,
@@ -317,10 +346,6 @@ fn executor_with(runner: impl CommandRunner + 'static) -> TmuxExecutor {
 
 fn executor_outside(runner: impl CommandRunner + 'static) -> TmuxExecutor {
     TmuxExecutor::new(Box::new(runner))
-}
-
-fn executor_with_target(runner: impl CommandRunner + 'static, target_pane: &str) -> TmuxExecutor {
-    TmuxExecutor::new_with_target(Box::new(runner), target_pane)
 }
 
 #[test]
@@ -610,23 +635,17 @@ fn select_or_create_window_resumes_existing() {
 }
 
 #[test]
-fn select_or_create_window_scopes_new_window_to_invoking_pane() {
+fn select_or_create_window_creates_in_current_session() {
     let f = FakeRunner::new();
     f.ok(
         "tmux",
-        "list-windows:-t:%7:-F:#{window_name}",
+        "list-windows:-F:#{window_name}",
         0,
         "other-window\n",
         "",
     );
-    f.ok(
-        "tmux",
-        "new-window:-t:%7:-n:wt-feat-bar:-c:/tmp:bash",
-        0,
-        "",
-        "",
-    );
-    f.ok("tmux", "select-window:-t:%7:wt-feat-bar", 0, "", "");
+    f.ok("tmux", "new-window:-n:wt-feat-bar:-c:/tmp:bash", 0, "", "");
+    f.ok("tmux", "select-window:-t:wt-feat-bar", 0, "", "");
     f.ok(
         "tmux",
         "display-message:Created worktree: feat-bar",
@@ -634,22 +653,22 @@ fn select_or_create_window_scopes_new_window_to_invoking_pane() {
         "",
         "",
     );
-    executor_with_target(f, "%7")
+    executor_with(f)
         .select_or_create_window("feat-bar", "/tmp", "bash")
         .unwrap();
 }
 
 #[test]
-fn select_or_create_window_scopes_existing_window_to_invoking_pane() {
+fn select_or_create_window_resumes_in_current_session() {
     let f = FakeRunner::new();
     f.ok(
         "tmux",
-        "list-windows:-t:%7:-F:#{window_name}",
+        "list-windows:-F:#{window_name}",
         0,
         "wt-feat-bar\nomp\n",
         "",
     );
-    f.ok("tmux", "select-window:-t:%7:wt-feat-bar", 0, "", "");
+    f.ok("tmux", "select-window:-t:wt-feat-bar", 0, "", "");
     f.ok(
         "tmux",
         "display-message:Resumed worktree: feat-bar",
@@ -657,7 +676,7 @@ fn select_or_create_window_scopes_existing_window_to_invoking_pane() {
         "",
         "",
     );
-    executor_with_target(f, "%7")
+    executor_with(f)
         .select_or_create_window("feat-bar", "/tmp", "bash")
         .unwrap();
 }

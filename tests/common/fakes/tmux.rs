@@ -412,8 +412,12 @@ impl MultiplexerPort for FakeTmxTest {
             Some((name.to_string(), path.to_string(), command.to_string()));
         Ok(())
     }
-    fn show_environment(&self, _v: &str) -> Result<Option<String>> {
-        Ok(self.env_value.clone())
+    fn show_environment(&self, variable: &str) -> Result<Option<String>> {
+        if variable == "SENKAI_ROOT" {
+            Ok(self.env_value.clone())
+        } else {
+            Ok(None)
+        }
     }
     fn current_pane_path(&self) -> Result<String> {
         match &self.pane_path {

@@ -271,7 +271,9 @@ impl RepositoryPort for FakeGitCreate {
     }
 
     fn run_in(&self, _dir: &Path, args: &[&str]) -> Result<(i32, String, String)> {
-        if args.contains(&"init.defaultBranch") || args.contains(&"--show-current") {
+        if args == ["worktree", "list", "--porcelain"] {
+            Ok((0, String::new(), String::new()))
+        } else if args.contains(&"init.defaultBranch") || args.contains(&"--show-current") {
             Ok((0, "main".into(), String::new()))
         } else if args.contains(&"show-ref") {
             Ok((1, String::new(), String::new()))

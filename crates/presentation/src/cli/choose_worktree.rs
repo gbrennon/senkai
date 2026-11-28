@@ -56,11 +56,37 @@ impl ChooseWorktree {
             .locate()
             .map_err(|error| Error::new(format!("Failed to find repository root: {error}")))?;
         let repository_root_path = Path::new(&repository_root);
-        std::env::set_current_dir(repository_root_path)?;
         if let Some(name) = name {
+            if let Some((branch, worktree_path)) =
+                self.find_existing_worktree(repository_root_path, name)?
+            {
+                return self.runtime.open(&branch, &worktree_path, print_path);
+            }
             return self.create_worktree_with_path_output(name, print_path);
         }
         self.select_existing_with_path_output(repository_root_path, print_path)
+    }
+
+    fn find_existing_worktree(
+        &self,
+        repository_root: &Path,
+        name: &str,
+    ) -> Result<Option<(String, std::path::PathBuf)>> {
+        for worktree_path in self.operations.list(repository_root)? {
+            let display_name = worktree_path
+                .file_name()
+                .map(|value| value.to_string_lossy().into_owned());
+            let branch = self.operations.branch(&worktree_path).ok();
+            if display_name.as_deref() == Some(name)
+                || branch.as_deref().map(str::trim) == Some(name)
+            {
+                return Ok(Some((
+                    branch.unwrap_or_else(|| name.to_string()),
+                    worktree_path,
+                )));
+            }
+        }
+        Ok(None)
     }
 
     pub fn select_existing(&self, repository_root: &Path) -> Result<()> {
@@ -115,8 +141,7 @@ impl ChooseWorktree {
                     .operations
                     .branch(worktree_path)
                     .unwrap_or_else(|_| display_name.clone());
-                self.runtime
-                    .open_with_path_output(&branch, worktree_path, print_path)
+                self.runtime.open(&branch, worktree_path, print_path)
             }
             SelectionResult::Custom(branch) => {
                 self.create_worktree_with_path_output(&branch, print_path)

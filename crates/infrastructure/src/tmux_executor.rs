@@ -9,7 +9,6 @@ use super::command_runner::{CommandRunner, SystemCommandRunner};
 /// tmux server.
 pub struct TmuxExecutor {
     pub runner: Box<dyn CommandRunner>,
-    target_pane: Option<String>,
     inside_tmux: bool,
 }
 
@@ -17,7 +16,6 @@ impl Default for TmuxExecutor {
     fn default() -> Self {
         Self {
             runner: Box::new(SystemCommandRunner),
-            target_pane: std::env::var("TMUX_PANE").ok(),
             inside_tmux: std::env::var_os("TMUX").is_some(),
         }
     }
@@ -27,7 +25,6 @@ impl TmuxExecutor {
     pub fn new(runner: Box<dyn CommandRunner>) -> Self {
         Self {
             runner,
-            target_pane: None,
             inside_tmux: std::env::var_os("TMUX").is_some(),
         }
     }
@@ -35,15 +32,6 @@ impl TmuxExecutor {
     pub fn new_in_tmux(runner: Box<dyn CommandRunner>) -> Self {
         Self {
             runner,
-            target_pane: None,
-            inside_tmux: true,
-        }
-    }
-
-    pub fn new_with_target(runner: Box<dyn CommandRunner>, target_pane: &str) -> Self {
-        Self {
-            runner,
-            target_pane: Some(target_pane.to_string()),
             inside_tmux: true,
         }
     }
@@ -203,40 +191,22 @@ impl TmuxExecutor {
     }
 
     fn window_target(&self, window: &str) -> String {
-        self.target_pane
-            .as_deref()
-            .map(|pane| format!("{pane}:{window}"))
-            .unwrap_or_else(|| window.to_string())
+        window.to_string()
     }
 
     fn new_window_args(&self, window: &str, cwd: &str, command: &str) -> Vec<String> {
-        match self.target_pane.as_deref() {
-            Some(pane) => vec![
-                "new-window".to_string(),
-                "-t".to_string(),
-                pane.to_string(),
-                "-n".to_string(),
-                window.to_string(),
-                "-c".to_string(),
-                cwd.to_string(),
-                command.to_string(),
-            ],
-            None => vec![
-                "new-window".to_string(),
-                "-n".to_string(),
-                window.to_string(),
-                "-c".to_string(),
-                cwd.to_string(),
-                command.to_string(),
-            ],
-        }
+        vec![
+            "new-window".to_string(),
+            "-n".to_string(),
+            window.to_string(),
+            "-c".to_string(),
+            cwd.to_string(),
+            command.to_string(),
+        ]
     }
 
     fn window_list_args(&self) -> Vec<&str> {
-        match self.target_pane.as_deref() {
-            Some(pane) => vec!["list-windows", "-t", pane, "-F", "#{window_name}"],
-            None => vec!["list-windows", "-F", "#{window_name}"],
-        }
+        vec!["list-windows", "-F", "#{window_name}"]
     }
 
     fn tmux_style(&self, option: &str) -> Option<String> {

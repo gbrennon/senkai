@@ -91,30 +91,26 @@ sk tui
 
 Ensure `~/.local/bin` is in `PATH` before running `sk`.
 
-Plain CLI commands do not start Ratatui. Use `sk choose <name>` to create a
-worktree, or use `sk choose` to select an existing worktree from a numbered
-terminal prompt. Use `sk settings list`, `sk settings get <name>`, and
+Plain CLI commands do not start Ratatui. Use `sk switch <name>` to create or
+resolve a worktree, or use `sk switch` to select an existing worktree from a
+numbered terminal prompt. `choose`, `checkout`, and `jump` are aliases for
+`switch`. Use `sk settings list`, `sk settings get <name>`, and
 `sk settings set <name> <value>` to manage persisted settings. Use `sk tui`,
 `sk tui choose`, `sk tui cleanup`, or `sk tui settings` when you want the
 Ratatui interface.
 Running `sk` without arguments, or with `-h` or `--help`, prints the CLI usage.
 
-Outside tmux, an executable cannot change the parent shell's directory. Source
-the shell wrapper to make `sk choose` and `sk create-worktree` change the
-calling shell's directory:
+Outside tmux, plain `sk switch <name>` creates or resolves the worktree, then
+starts an interactive shell in that worktree. When the child shell exits, the
+original shell remains in its original directory. The shell comes from `$SHELL`,
+falling back to `/bin/sh`. Inside tmux, the command opens or resumes a
+`wt-<branch>` window at the worktree.
+
+For scripts or shell integrations that need the path without starting a shell or
+opening a tmux window, use `--print-path`:
 
 ```bash
-source /path/to/senkai/senkai.sh
-sk choose <name>
-```
-
-The wrapper keeps the normal tmux behavior: inside tmux, these commands open or
-select a `wt-<branch>` window at the selected worktree. Without the wrapper,
-use `--print-path` with command substitution when the shell should change
-directory:
-
-```bash
-cd "$(sk choose --print-path <name>)"
+cd "$(sk switch --print-path <name>)"
 ```
 SSH authentication uses the agent available when the plugin is loaded. The
 plugin persists `SSH_AUTH_SOCK` into the invoking tmux session environment so

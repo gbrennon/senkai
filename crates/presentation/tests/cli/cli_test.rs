@@ -1,4 +1,5 @@
 mod tests {
+    use std::os::unix::fs::PermissionsExt;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use std::sync::{Mutex, MutexGuard, OnceLock};
@@ -38,7 +39,6 @@ mod tests {
             }
         }
     }
-
     impl Drop for ProcessStateGuard {
         fn drop(&mut self) {
             std::env::set_current_dir(&self.directory).unwrap();
@@ -48,7 +48,6 @@ mod tests {
             }
         }
     }
-
     fn repository_operations(
         terminal: impl MultiplexerPort + 'static,
         repository: impl senkai_core::ports::RepositoryPort + 'static,
@@ -143,29 +142,29 @@ mod tests {
     }
 
     #[test]
-    fn parse_args_extracts_create_branch() {
+    fn parse_args_extracts_switch_name() {
         let cli = cli_default(StubTmx, StubGit);
         let (command, rest) = cli.parse_args(&[
             "sk".to_string(),
-            "create-worktree".to_string(),
+            "switch".to_string(),
             "feat/foo".to_string(),
         ]);
 
-        assert_eq!(command, Command::CreateWorktree);
+        assert_eq!(command, Command::Choose);
         assert_eq!(rest, vec!["feat/foo"]);
     }
 
     #[test]
-    fn parse_args_extracts_create_print_path() {
+    fn parse_args_extracts_switch_print_path_from_alias() {
         let cli = cli_default(StubTmx, StubGit);
         let (command, rest) = cli.parse_args(&[
             "sk".to_string(),
-            "create-worktree".to_string(),
+            "checkout".to_string(),
             "--print-path".to_string(),
             "feat/foo".to_string(),
         ]);
 
-        assert_eq!(command, Command::CreateWorktreePath);
+        assert_eq!(command, Command::ChoosePath);
         assert_eq!(rest, vec!["feat/foo"]);
     }
 
@@ -178,7 +177,7 @@ mod tests {
             Command::TuiChoose
         );
         assert_eq!(
-            cli.parse_args(&["sk".to_string(), "tui".to_string(), "cleanup".to_string(),])
+            cli.parse_args(&["sk".to_string(), "tui".to_string(), "cleanup".to_string()])
                 .0,
             Command::TuiCleanup
         );
@@ -192,7 +191,7 @@ mod tests {
             Command::TuiDemoLoading
         );
         assert_eq!(
-            cli.parse_args(&["sk".to_string(), "tui".to_string(), "settings".to_string(),])
+            cli.parse_args(&["sk".to_string(), "tui".to_string(), "settings".to_string()])
                 .0,
             Command::TuiSettings
         );
@@ -287,15 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn dispatch_create_worktree_succeeds() {
-        let cli = cli_default(FakeTmxCreateSuccess, FakeGitCreate);
-        let result = cli.dispatch(Command::CreateWorktree, &["test-branch".to_string()]);
-
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn dispatch_choose_print_path_preserves_tmux_window_behavior() {
+    fn dispatch_choose_print_path_outputs_without_tmux_window_behavior() {
         let cli = cli_default(FakeTmxCreateSuccess, FakeGitCreate);
         let result = cli.dispatch(Command::ChoosePath, &["test-branch".to_string()]);
 
@@ -303,9 +294,12 @@ mod tests {
     }
 
     #[test]
-    fn selecting_an_existing_worktree_opens_its_registered_path() {
+    fn switching_to_existing_named_worktree_resolves_registered_path() {
         let repository = tempfile::tempdir().unwrap();
-        let target = repository.path().join(".worktrees").join("feat-a");
+        let target = repository
+            .path()
+            .join(".worktrees")
+            .join("external-location");
         std::fs::create_dir_all(&target).unwrap();
         std::fs::create_dir(repository.path().join(".git")).unwrap();
         let _state = ProcessStateGuard::new(repository.path());
@@ -316,16 +310,81 @@ mod tests {
             Rc::new(FakeGitForChoose::existing_worktree(
                 &repository.path().to_string_lossy(),
                 &target.to_string_lossy(),
-                "",
+                "feat-a",
             )),
             Rc::new(FakeSelector::new(vec![SelectionResult::Selected(0)])),
             Rc::new(FakeLoading::new()),
         );
 
-        let result = chooser.run(None);
+        let result = chooser.run_with_path_output(Some("feat-a"));
 
         assert!(result.is_ok());
-        assert_eq!(std::env::current_dir().unwrap(), target);
+    }
+
+    #[test]
+    fn path_output_does_not_spawn_a_shell() {
+        let repository = tempfile::tempdir().unwrap();
+        let target = repository
+            .path()
+            .join(".worktrees")
+            .join("external-location");
+        std::fs::create_dir_all(&target).unwrap();
+        std::fs::create_dir(repository.path().join(".git")).unwrap();
+        let _state = ProcessStateGuard::new(repository.path());
+        let terminal = FakeTmxTest::new(&repository.path().to_string_lossy());
+        let selected_window = Rc::clone(&terminal.selected_window);
+        let chooser = ChooseWorktree::new(
+            Rc::new(terminal),
+            Rc::new(FakeGitForChoose::existing_worktree(
+                &repository.path().to_string_lossy(),
+                &target.to_string_lossy(),
+                "feat-a",
+            )),
+            Rc::new(FakeSelector::new(vec![SelectionResult::Selected(0)])),
+            Rc::new(FakeLoading::new()),
+        );
+
+        chooser.run_with_path_output(Some("feat-a")).unwrap();
+
+        assert!(selected_window.borrow().is_none());
+    }
+
+    #[test]
+    fn switch_spawns_a_shell_in_the_worktree() {
+        let repository = tempfile::tempdir().unwrap();
+        let target = repository
+            .path()
+            .join(".worktrees")
+            .join("external-location");
+        let shell = repository.path().join("test-shell");
+        let shell_pwd = repository.path().join("shell-pwd");
+        std::fs::create_dir_all(&target).unwrap();
+        std::fs::create_dir(repository.path().join(".git")).unwrap();
+        std::fs::write(
+            &shell,
+            format!("#!/bin/sh\npwd > '{}'\n", shell_pwd.display()),
+        )
+        .unwrap();
+        std::fs::set_permissions(&shell, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let mut terminal = FakeTmxTest::outside_tmux(&repository.path().to_string_lossy());
+        terminal.shell_cmd = shell.to_string_lossy().into_owned();
+        let chooser = ChooseWorktree::new(
+            Rc::new(terminal),
+            Rc::new(FakeGitForChoose::existing_worktree(
+                &repository.path().to_string_lossy(),
+                &target.to_string_lossy(),
+                "feat-a",
+            )),
+            Rc::new(FakeSelector::new(vec![SelectionResult::Selected(0)])),
+            Rc::new(FakeLoading::new()),
+        );
+
+        chooser.run(Some("feat-a")).unwrap();
+
+        assert_eq!(
+            std::fs::read_to_string(shell_pwd).unwrap().trim(),
+            target.to_string_lossy()
+        );
     }
 
     #[test]
@@ -382,7 +441,7 @@ mod tests {
     }
 
     #[test]
-    fn create_worktree_changes_directory_outside_tmux() {
+    fn switch_resolves_worktree_outside_tmux() {
         let repository = tempfile::tempdir().unwrap();
         let target = repository.path().join(".worktrees").join("new-feature");
         std::fs::create_dir_all(&target).unwrap();
@@ -393,9 +452,8 @@ mod tests {
             FakeTmxTest::outside_tmux(&repository.path().to_string_lossy()),
             FakeGitCreate,
         );
-        let result = cli.dispatch(Command::CreateWorktree, &["new-feature".to_string()]);
+        let result = cli.dispatch(Command::ChoosePath, &["new-feature".to_string()]);
 
         assert!(result.is_ok());
-        assert_eq!(std::env::current_dir().unwrap(), target);
     }
 }
