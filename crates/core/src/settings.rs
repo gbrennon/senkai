@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn setting_names_are_sorted() {
-        let settings = Settings::from_values([("theme", "dark"), ("editor", "nvim")]);
+        let settings = Settings::from_values([("theme", "dark"), ("editor", "vim")]);
 
         assert_eq!(settings.names(), vec!["editor", "theme"]);
     }

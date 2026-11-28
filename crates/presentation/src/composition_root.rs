@@ -1,13 +1,14 @@
 use senkai_core::ports::SettingsRepository;
 use senkai_core::ports::multiplexer_port::MultiplexerPort;
 use senkai_core::ports::repository_port::RepositoryPort;
+use std::rc::Rc;
 
 use crate::application::Application;
 use crate::capabilities::{PlainLoading, PlainSelector};
 use crate::cli::Cli;
 use crate::cli::cli_capabilities::CliCapabilities;
 use crate::tui::theme::Theme;
-use crate::tui::{RatatuiLoading, RatatuiSelector};
+use crate::tui::{RatatuiLoading, RatatuiSelector, SelectorSettingsDisplay};
 
 pub struct CompositionRoot;
 
@@ -37,7 +38,10 @@ impl CompositionRoot {
             Box::new(PlainSelector::new()),
             Box::new(RatatuiSelector::new(theme.clone())),
             Box::new(PlainLoading::new()),
-            Box::new(RatatuiLoading::new(theme)),
+            Box::new(RatatuiLoading::new(theme.clone())),
+            Box::new(SelectorSettingsDisplay::new(Rc::new(RatatuiSelector::new(
+                theme,
+            )))),
         );
         let cli = match settings_repository {
             Some(settings_repository) => Cli::new_with_capabilities_and_settings(

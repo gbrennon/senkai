@@ -31,6 +31,7 @@ impl SelectorRunner for StubSelector {
 pub struct FakeSelector {
     pub results: RefCell<Vec<SelectionResult>>,
     pub calls: std::rc::Rc<RefCell<Vec<Vec<String>>>>,
+    pub prompts: std::rc::Rc<RefCell<Vec<(String, String)>>>,
 }
 
 impl FakeSelector {
@@ -38,6 +39,7 @@ impl FakeSelector {
         Self {
             results: RefCell::new(results),
             calls: std::rc::Rc::new(RefCell::new(Vec::new())),
+            prompts: std::rc::Rc::new(RefCell::new(Vec::new())),
         }
     }
 }
@@ -47,10 +49,13 @@ impl SelectorRunner for FakeSelector {
         &self,
         items: Vec<String>,
         _allow_custom: bool,
-        _prompt: &str,
-        _header: &str,
+        prompt: &str,
+        header: &str,
     ) -> Result<SelectionResult> {
         self.calls.borrow_mut().push(items);
+        self.prompts
+            .borrow_mut()
+            .push((prompt.to_string(), header.to_string()));
         Ok(if self.results.borrow().is_empty() {
             SelectionResult::Cancelled
         } else {

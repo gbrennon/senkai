@@ -35,7 +35,7 @@ mod tests {
 
     #[test]
     fn list_service_returns_setting_names() {
-        let settings = Settings::from_values([("theme", "dark"), ("editor", "nvim")]);
+        let settings = Settings::from_values([("theme", "dark"), ("editor", "vim")]);
 
         assert_eq!(
             ListSettingsService.execute(&settings),
