@@ -19,7 +19,7 @@ use super::cli_command::{CliCommand, SettingsCommand, TuiCommand};
 use super::command::{Command, has_explicit_tui_argument};
 use super::repository_locator::RepositoryLocator;
 use super::settings::{SettingsAction, SettingsCli};
-use crate::tui::SettingsTui;
+use crate::tui::SettingsDisplay;
 
 pub struct CliEntrypoint {
     terminal: Rc<dyn MultiplexerPort>,
@@ -28,6 +28,7 @@ pub struct CliEntrypoint {
     tui_selector: Rc<dyn SelectorRunner>,
     loading: Rc<dyn LoadingRunner>,
     tui_loading: Rc<dyn LoadingRunner>,
+    settings_display: Option<Rc<dyn SettingsDisplay>>,
     settings_repository: Option<Rc<dyn SettingsRepository>>,
 }
 
@@ -47,6 +48,7 @@ impl CliEntrypoint {
             tui_selector: selector,
             loading: Rc::clone(&loading),
             tui_loading: loading,
+            settings_display: None,
             settings_repository: None,
         }
     }
@@ -56,7 +58,8 @@ impl CliEntrypoint {
         repository: Box<dyn RepositoryPort>,
         capabilities: CliCapabilities,
     ) -> Self {
-        let (selector, tui_selector, loading, tui_loading) = capabilities.into_parts();
+        let (selector, tui_selector, loading, tui_loading, settings_display) =
+            capabilities.into_parts();
         Self {
             terminal: Rc::from(terminal),
             repository: Rc::from(repository),
@@ -64,6 +67,7 @@ impl CliEntrypoint {
             tui_selector: Rc::from(tui_selector),
             loading: Rc::from(loading),
             tui_loading: Rc::from(tui_loading),
+            settings_display: Some(Rc::from(settings_display)),
             settings_repository: None,
         }
     }
@@ -159,7 +163,10 @@ impl CliEntrypoint {
                     .as_ref()
                     .ok_or_else(|| senkai_core::error::Error::new("Settings are not configured"))?;
                 let settings = repository.load()?;
-                SettingsTui::new(Rc::clone(&self.tui_selector)).run(&settings)
+                let display = self.settings_display.as_ref().ok_or_else(|| {
+                    senkai_core::error::Error::new("Settings display is not configured")
+                })?;
+                display.display(&settings)
             }
             Command::TuiDemoLoading => self.tui_loading.run_loading(
                 "Demo: loading indicator test…",
