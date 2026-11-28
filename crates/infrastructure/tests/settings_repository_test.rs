@@ -19,7 +19,7 @@ mod tests {
     fn save_and_load_round_trip_string_settings() {
         let directory = tempfile::tempdir().unwrap();
         let repository = TomlSettingsRepository::new(directory.path().join("settings.toml"));
-        let settings = Settings::from_values([("editor", "nvim"), ("theme", "dark")]);
+        let settings = Settings::from_values([("editor", "vim"), ("theme", "dark")]);
 
         repository.save(&settings).unwrap();
 
